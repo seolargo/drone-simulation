@@ -12,6 +12,7 @@ from config import (
     WIDTH, HEIGHT, GROUND_HALF, GROUND_STEP,
     BG_COLOR, GRID_COLOR, GRID_AXIS_COLOR, HUD_COLOR, SHADOW_COLOR,
     DRONE_ARM_COLOR, DRONE_HUB_COLOR, DRONE_ROTOR_COLOR, DRONE_BLADE_COLOR,
+    DRONE_NOSE_COLOR,
 )
 from .camera import Camera
 
@@ -83,24 +84,22 @@ class Renderer:
             for b0, b1 in blades:
                 self._line(b0, b1, DRONE_BLADE_COLOR, 2)
 
+        # Burun göstergesi (ileri yön / yaw)
+        n0, n1 = parts["nose"]
+        self._line(n0, n1, DRONE_NOSE_COLOR, 3)
+
         # Gövde merkezi
         c = self._p(parts["center"])
         if c:
             pygame.draw.circle(self.screen, DRONE_HUB_COLOR, (int(c[0]), int(c[1])), 6)
 
     def _draw_hud(self, drone, paused):
-        if paused:
-            durum = "DURAKLADI"
-        elif drone.control.any():
-            durum = "itki AKTİF"
-        elif drone.on_ground:
-            durum = "yerde"
-        else:
-            durum = "serbest düşüş"
-
-        vz = drone.vel[2]
-        line1 = (f"yükseklik z={drone.pos[2]:5.2f} | "
-                 f"düşey hız vz={vz:7.2f} | {durum}")
-        line2 = "ok tuşları: yukarı/aşağı + sol/sağ | W/S: ileri/geri | BOŞLUK dur | R sıfırla | Q çıkış"
-        self.screen.blit(self.font.render(line1, True, HUD_COLOR), (10, 10))
-        self.screen.blit(self.font.render(line2, True, HUD_COLOR), (10, 30))
+        durum = "DURAKLADI" if paused else ("yerde" if drone.on_ground else "uçuyor")
+        deg = np.degrees
+        line1 = (f"z={drone.pos[2]:5.2f}  vz={drone.vel[2]:6.2f}  gaz={drone.throttle*100:3.0f}%  "
+                 f"{durum}")
+        line2 = (f"roll={deg(drone.roll):5.0f}°  pitch={deg(drone.pitch):5.0f}°  "
+                 f"yaw={deg(drone.yaw) % 360:5.0f}°")
+        line3 = "←/→ roll | ↑/↓ pitch | A/D yaw | W/S gaz | BOŞLUK dur | R sıfırla | Q çıkış"
+        for i, line in enumerate((line1, line2, line3)):
+            self.screen.blit(self.font.render(line, True, HUD_COLOR), (10, 10 + i * 20))

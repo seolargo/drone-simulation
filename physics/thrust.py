@@ -1,27 +1,22 @@
 """
 İtki (thrust) modeli.
 
-Kontrol girdisine göre bir ivme vektörü üretir. Dikey itki, yerçekimini
-yenebilmek için ondan büyük seçilir; böylece drone tırmanabilir/asılı kalabilir.
+İtki, drone'un gövde-yukarı ekseni boyunca etki eder. Gövde eğildiğinde
+(roll/pitch) bu eksen yana yatar ve itkinin bir bileşeni yatay olur —
+gerçek bir quadcopter'ın nasıl ilerlediğinin temeli budur.
 
-control: 3 bileşenli vektör, her biri genelde {-1, 0, +1}
-    control[0] -> x (sağ/sol)
-    control[1] -> y (ileri/geri)
-    control[2] -> z (yukarı/aşağı)
+    body_up  : gövde-yukarı ekseninin dünya koordinatındaki yönü (birim vektör)
+    throttle : 0..1 gaz seviyesi
 """
 
 import numpy as np
 
-from config import THRUST_UP, THRUST_HORIZ
+from config import THRUST_MAX
 
 
 class Thrust:
-    def __init__(self, up=THRUST_UP, horiz=THRUST_HORIZ):
-        self.up = up
-        self.horiz = horiz
+    def __init__(self, max_accel=THRUST_MAX):
+        self.max_accel = max_accel
 
-    def acceleration(self, control):
-        cx, cy, cz = control
-        return np.array([cx * self.horiz,
-                         cy * self.horiz,
-                         cz * self.up], dtype=float)
+    def acceleration(self, body_up, throttle):
+        return np.asarray(body_up, dtype=float) * (throttle * self.max_accel)

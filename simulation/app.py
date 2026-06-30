@@ -15,7 +15,7 @@ class App:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Simülasyon — 3B itkili drone")
+        pygame.display.set_caption("Simülasyon — 3B drone (roll/pitch/yaw)")
         self.clock = pygame.time.Clock()
         self.renderer = Renderer(self.screen)
 
@@ -36,12 +36,13 @@ class App:
                     self.drone.reset()
 
     def poll_control(self):
-        """Basılı tuşlardan itki yön vektörünü oku."""
+        """Basılı tuşlardan yönelim + gaz kontrolünü oku."""
         k = pygame.key.get_pressed()
-        cx = k[pygame.K_RIGHT] - k[pygame.K_LEFT]   # x: sağ / sol
-        cy = k[pygame.K_w] - k[pygame.K_s]          # y: ileri / geri (derinlik)
-        cz = k[pygame.K_UP] - k[pygame.K_DOWN]       # z: yukarı / aşağı
-        self.drone.control[:] = (cx, cy, cz)
+        roll = k[pygame.K_RIGHT] - k[pygame.K_LEFT]   # ← / → : roll (sola/sağa yat → yana uç)
+        pitch = k[pygame.K_DOWN] - k[pygame.K_UP]     # ↑ / ↓ : pitch (↑ burun aşağı → ileri uç)
+        yaw = k[pygame.K_a] - k[pygame.K_d]           # A / D : yaw (sola/sağa dön)
+        throttle = k[pygame.K_w] - k[pygame.K_s]      # W / S : gaz artır/azalt
+        self.drone.control[:] = (roll, pitch, yaw, throttle)
 
     def run(self):
         while self.running:

@@ -6,6 +6,8 @@ Dünya koordinatları (sağ-el, z yukarı):
     Zemin z = 0 düzleminde; drone yüksek z'den düşer.
 """
 
+import math
+
 # Pencere / zamanlama
 WIDTH, HEIGHT = 900, 600
 FPS = 60
@@ -13,9 +15,14 @@ FPS = 60
 # Fizik (dünya birimi / saniye^2), -z yönünde uygulanır
 GRAVITY = 12.0
 
-# İtki (thrust) — kontrolle uygulanan ivme (dünya birimi / saniye^2)
-THRUST_UP = 22.0         # dikey itki (yerçekimini yenmeli: > GRAVITY)
-THRUST_HORIZ = 14.0      # yatay itki
+# İtki (thrust) — gövde-yukarı ekseni boyunca
+THRUST_MAX = 22.0        # tam gazda ivme (yerçekimini yenmeli: > GRAVITY)
+THROTTLE_RATE = 0.9      # gaz seviyesinin saniyedeki değişimi (W/S)
+
+# Yönelim (attitude)
+MAX_TILT = math.radians(28)     # maksimum roll/pitch açısı
+TILT_SLEW = math.radians(140)   # açının hedefe yaklaşma hızı (rad/s, kendiliğinden dengeleme)
+YAW_RATE = math.radians(100)    # yaw dönüş hızı (rad/s)
 
 # Drone
 DRONE_ARM = 0.7          # kol uzunluğu (merkezden pervaneye)
@@ -43,3 +50,4 @@ DRONE_ARM_COLOR = (90, 150, 220)
 DRONE_HUB_COLOR = (70, 130, 200)
 DRONE_ROTOR_COLOR = (170, 200, 235)
 DRONE_BLADE_COLOR = (230, 235, 245)
+DRONE_NOSE_COLOR = (240, 180, 70)
