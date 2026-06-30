@@ -89,14 +89,18 @@ class Renderer:
             pygame.draw.circle(self.screen, DRONE_HUB_COLOR, (int(c[0]), int(c[1])), 6)
 
     def _draw_hud(self, drone, paused):
-        if drone.landed:
-            durum = "KONDU"
-        elif paused:
+        if paused:
             durum = "DURAKLADI"
+        elif drone.control.any():
+            durum = "itki AKTİF"
+        elif drone.on_ground:
+            durum = "yerde"
         else:
-            durum = "düşüyor"
+            durum = "serbest düşüş"
 
         vz = drone.vel[2]
-        hud = (f"yükseklik z={drone.pos[2]:5.2f} | "
-               f"düşey hız vz={vz:7.2f} | {durum}  (BOŞLUK/R/Q)")
-        self.screen.blit(self.font.render(hud, True, HUD_COLOR), (10, 10))
+        line1 = (f"yükseklik z={drone.pos[2]:5.2f} | "
+                 f"düşey hız vz={vz:7.2f} | {durum}")
+        line2 = "ok tuşları: yukarı/aşağı + sol/sağ | W/S: ileri/geri | BOŞLUK dur | R sıfırla | Q çıkış"
+        self.screen.blit(self.font.render(line1, True, HUD_COLOR), (10, 10))
+        self.screen.blit(self.font.render(line2, True, HUD_COLOR), (10, 30))

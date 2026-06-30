@@ -1,45 +1,61 @@
 """
 Drone varlığı (3 boyutlu quadcopter).
 
-Yalnızca yerçekimine maruz kalır, yukarıdan (yüksek z) aşağı düşer ve
-zeminde (z = 0) durur. Geometrisini dünya koordinatlarında üretir;
-çizim katmanı bu noktaları ekrana yansıtır.
+Yerçekimi + kontrol edilebilen itkiye maruz kalır. Zemin (z = 0) bir tabandır:
+drone üzerine konabilir, ama yeterli dikey itkiyle tekrar havalanabilir.
+Geometrisini dünya koordinatlarında üretir; çizim katmanı bu noktaları yansıtır.
 """
 
 import numpy as np
 
-from config import DRONE_ARM, DRONE_ROTOR_R, DRONE_START_Z, ROTOR_SPIN
-from physics import Gravity, semi_implicit_euler
+from config import (
+    DRONE_ARM, DRONE_ROTOR_R, DRONE_START_Z, ROTOR_SPIN, GROUND_HALF,
+)
+from physics import Gravity, Thrust, semi_implicit_euler
 
 # X-konfigürasyonu: dört kol köşegen yönlerde
 _ARM_DIRS = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
 
 
 class Drone:
-    def __init__(self, gravity=None):
+    def __init__(self, gravity=None, thrust=None):
         self.gravity = gravity or Gravity()
+        self.thrust = thrust or Thrust()
         self.reset()
 
     def reset(self):
         """Drone'u tepe-ortaya, hareketsiz olarak yerleştirir."""
         self.pos = np.array([0.0, 0.0, DRONE_START_Z], dtype=float)
         self.vel = np.zeros(3, dtype=float)
+        self.control = np.zeros(3, dtype=float)   # [x, y, z] itki yönü
         self.spin = 0.0
-        self.landed = False
+        self.on_ground = False
 
     def update(self, dt):
-        if self.landed:
-            return
-
-        acc = self.gravity.acceleration()
+        acc = self.gravity.acceleration() + self.thrust.acceleration(self.control)
         self.pos, self.vel = semi_implicit_euler(self.pos, self.vel, acc, dt)
-        self.spin += ROTOR_SPIN * dt
 
-        # Zemine (z = 0) değince dur
+        # Zemin tabanı: altına inemez, aşağı hızı sıfırlanır (ama yukarı serbest)
         if self.pos[2] <= 0.0:
             self.pos[2] = 0.0
-            self.vel[:] = 0.0
-            self.landed = True
+            if self.vel[2] < 0.0:
+                self.vel[2] = 0.0
+            self.on_ground = True
+        else:
+            self.on_ground = False
+
+        # Yatay sınırlar: ızgara içinde kalsın
+        for i in (0, 1):
+            if self.pos[i] < -GROUND_HALF:
+                self.pos[i] = -GROUND_HALF
+                self.vel[i] = 0.0
+            elif self.pos[i] > GROUND_HALF:
+                self.pos[i] = GROUND_HALF
+                self.vel[i] = 0.0
+
+        # Pervaneler: yerde boştayken dursun, aksi halde dönsün
+        if not (self.on_ground and not self.control.any()):
+            self.spin += ROTOR_SPIN * dt
 
     # --- Geometri (dünya koordinatları) ---------------------------------
     def world_parts(self):

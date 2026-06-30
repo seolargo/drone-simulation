@@ -13,6 +13,10 @@ FPS = 60
 # Fizik (dünya birimi / saniye^2), -z yönünde uygulanır
 GRAVITY = 12.0
 
+# İtki (thrust) — kontrolle uygulanan ivme (dünya birimi / saniye^2)
+THRUST_UP = 22.0         # dikey itki (yerçekimini yenmeli: > GRAVITY)
+THRUST_HORIZ = 14.0      # yatay itki
+
 # Drone
 DRONE_ARM = 0.7          # kol uzunluğu (merkezden pervaneye)
 DRONE_ROTOR_R = 0.32     # pervane yarıçapı

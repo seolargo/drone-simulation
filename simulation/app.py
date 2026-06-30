@@ -15,7 +15,7 @@ class App:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Simülasyon — 3B düşen drone")
+        pygame.display.set_caption("Simülasyon — 3B itkili drone")
         self.clock = pygame.time.Clock()
         self.renderer = Renderer(self.screen)
 
@@ -35,12 +35,21 @@ class App:
                 elif event.key == pygame.K_r:
                     self.drone.reset()
 
+    def poll_control(self):
+        """Basılı tuşlardan itki yön vektörünü oku."""
+        k = pygame.key.get_pressed()
+        cx = k[pygame.K_RIGHT] - k[pygame.K_LEFT]   # x: sağ / sol
+        cy = k[pygame.K_w] - k[pygame.K_s]          # y: ileri / geri (derinlik)
+        cz = k[pygame.K_UP] - k[pygame.K_DOWN]       # z: yukarı / aşağı
+        self.drone.control[:] = (cx, cy, cz)
+
     def run(self):
         while self.running:
             dt = self.clock.tick(FPS) / 1000.0
 
             self.handle_events()
             if not self.paused:
+                self.poll_control()
                 self.drone.update(dt)
             self.renderer.draw(self.drone, self.paused)
 
