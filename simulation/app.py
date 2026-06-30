@@ -6,7 +6,7 @@ import sys
 
 import pygame
 
-from config import WIDTH, HEIGHT, FPS
+from config import WIDTH, HEIGHT, FPS, CMD_SPEED
 from entities import Drone
 from rendering import Renderer
 
@@ -15,7 +15,7 @@ class App:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Simülasyon — 3B drone (roll/pitch/yaw)")
+        pygame.display.set_caption("Simülasyon — 3B drone (PID otopilot)")
         self.clock = pygame.time.Clock()
         self.renderer = Renderer(self.screen)
 
@@ -36,13 +36,14 @@ class App:
                     self.drone.reset()
 
     def poll_control(self):
-        """Basılı tuşlardan yönelim + gaz kontrolünü oku."""
+        """Basılı tuşlardan PID hedeflerini oku."""
         k = pygame.key.get_pressed()
-        roll = k[pygame.K_RIGHT] - k[pygame.K_LEFT]   # ← / → : roll (sola/sağa yat → yana uç)
-        pitch = k[pygame.K_DOWN] - k[pygame.K_UP]     # ↑ / ↓ : pitch (↑ burun aşağı → ileri uç)
-        yaw = k[pygame.K_a] - k[pygame.K_d]           # A / D : yaw (sola/sağa dön)
-        throttle = k[pygame.K_w] - k[pygame.K_s]      # W / S : gaz artır/azalt
-        self.drone.control[:] = (roll, pitch, yaw, throttle)
+        # Ok tuşları -> hedef yatay hız (PID eğimi kendisi hesaplar)
+        vx = (k[pygame.K_RIGHT] - k[pygame.K_LEFT]) * CMD_SPEED   # ← / → : sol / sağ
+        vy = (k[pygame.K_UP] - k[pygame.K_DOWN]) * CMD_SPEED      # ↑ / ↓ : ileri / geri
+        self.drone.cmd_vel[:] = (vx, vy)
+        self.drone.cmd_climb = k[pygame.K_w] - k[pygame.K_s]      # W / S : yüksel / alçal
+        self.drone.cmd_yaw = k[pygame.K_a] - k[pygame.K_d]        # A / D : sola / sağa dön
 
     def run(self):
         while self.running:

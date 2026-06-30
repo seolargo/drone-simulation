@@ -94,12 +94,19 @@ class Renderer:
             pygame.draw.circle(self.screen, DRONE_HUB_COLOR, (int(c[0]), int(c[1])), 6)
 
     def _draw_hud(self, drone, paused):
-        durum = "DURAKLADI" if paused else ("yerde" if drone.on_ground else "uçuyor")
         deg = np.degrees
-        line1 = (f"z={drone.pos[2]:5.2f}  vz={drone.vel[2]:6.2f}  gaz={drone.throttle*100:3.0f}%  "
-                 f"{durum}")
-        line2 = (f"roll={deg(drone.roll):5.0f}°  pitch={deg(drone.pitch):5.0f}°  "
-                 f"yaw={deg(drone.yaw) % 360:5.0f}°")
-        line3 = "←/→ roll | ↑/↓ pitch | A/D yaw | W/S gaz | BOŞLUK dur | R sıfırla | Q çıkış"
+        vx, vy = drone.vel[0], drone.vel[1]
+        tx, ty = drone.cmd_vel
+        if paused:
+            pid = "DURAKLADI"
+        elif drone.pid_active:
+            pid = "PID: HIZ KOMUTU"
+        else:
+            pid = "PID: KONUM TUTMA (hover)"
+
+        line1 = (f"z={drone.pos[2]:4.2f}/{drone.z_target:4.2f}  gaz={drone.throttle*100:3.0f}%  "
+                 f"roll={deg(drone.roll):4.0f}° pitch={deg(drone.pitch):4.0f}° yaw={deg(drone.yaw)%360:3.0f}°")
+        line2 = (f"hız (vx,vy)=({vx:5.2f},{vy:5.2f})  hedef=({tx:4.1f},{ty:4.1f})  -> {pid}")
+        line3 = "←/→ ↑/↓ hareket (PID) | W/S irtifa | A/D yaw | BOŞLUK dur | R sıfırla | Q çıkış"
         for i, line in enumerate((line1, line2, line3)):
             self.screen.blit(self.font.render(line, True, HUD_COLOR), (10, 10 + i * 20))

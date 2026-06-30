@@ -20,21 +20,51 @@ THRUST_MAX = 22.0        # tam gazda ivme (yerçekimini yenmeli: > GRAVITY)
 THROTTLE_RATE = 0.9      # gaz seviyesinin saniyedeki değişimi (W/S)
 
 # Yönelim (attitude)
-MAX_TILT = math.radians(28)     # maksimum roll/pitch açısı
-TILT_SLEW = math.radians(140)   # açının hedefe yaklaşma hızı (rad/s, kendiliğinden dengeleme)
-YAW_RATE = math.radians(100)    # yaw dönüş hızı (rad/s)
+MAX_TILT = math.radians(18)     # PID'in komut edebileceği maksimum roll/pitch açısı (yumuşak)
+YAW_RATE = math.radians(75)     # yaw dönüş hızı (rad/s, manuel)
+
+# Otomatik uçuş kontrolü (PID)
+CMD_SPEED = 3.0          # ok tuşlarının komut verdiği maksimum yatay hız (birim/s)
+CLIMB_RATE = 2.0         # W/S ile irtifa hedefinin değişim hızı (birim/s)
+HOVER_THROTTLE = GRAVITY / THRUST_MAX   # asılı kalma gazı (ileri besleme)
+
+# Dış konum döngüsü: hata (hedef konum - gerçek konum) -> hız hedefi
+# (komut yokken devreye girer; drone'u bir noktada tutar)
+POS_KP = 1.6
+
+# Yatay hız PID: hata (hedef hız - gerçek hız) -> eğim açısı
+# Yumuşak tepki: düşük KP (anında doyma yok), KD damping, düşük KI
+VEL_KP = 0.09
+VEL_KI = 0.02
+VEL_KD = 0.03
+# İrtifa PID: hata (hedef z - gerçek z) -> gaz düzeltmesi (hover üstüne eklenir)
+ALT_KP = 0.11
+ALT_KI = 0.03
+ALT_KD = 0.16
+
+PID_DERIV_TAU = 0.06     # PID türev alçak-geçiren zaman sabiti (s) — gürültüyü yumuşatır
+
+# Bozucu etkiler (gerçekçilik) — PID'in duruşta sürekli düzeltme yapmasını sağlar
+WIND_ACCEL = 0.8         # türbülans ivmesi (birim/s^2, kararlı-hal std)
+WIND_TAU = 0.45          # gust korelasyon süresi (s) — gust'ların değişim hızı
+SENSOR_VEL_NOISE = 0.05  # hız ölçüm gürültüsü (birim/s, std) — ince titreme
+SENSOR_POS_NOISE = 0.012 # konum ölçüm gürültüsü (birim, std)
 
 # Drone
 DRONE_ARM = 0.7          # kol uzunluğu (merkezden pervaneye)
 DRONE_ROTOR_R = 0.32     # pervane yarıçapı
-DRONE_START_Z = 7.0      # başlangıç yüksekliği
+DRONE_START_Z = 5.0      # başlangıç yüksekliği (oyun alanı içinde)
 ROTOR_SPIN = 28.0        # pervane dönüş hızı (rad/s, görsel)
 
-# Kamera
-CAM_EYE = (8.0, -11.0, 6.0)
-CAM_TARGET = (0.0, 0.0, 2.5)
+# Oyun alanı sınırları — drone bu kutudan (ve ekrandan) çıkamaz
+BOUND_XY = 3.7           # yatay sınır (±)
+CEIL_Z = 6.0             # dikey tavan
+
+# Kamera — oyun alanını tam çerçeveler
+CAM_EYE = (8.0, -13.0, 8.0)
+CAM_TARGET = (0.0, 0.0, 1.5)
 CAM_UP = (0.0, 0.0, 1.0)
-CAM_FOV_DEG = 60.0
+CAM_FOV_DEG = 58.0
 
 # Zemin ızgarası
 GROUND_HALF = 5          # ızgara -5..5 arası
