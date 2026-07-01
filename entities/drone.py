@@ -20,10 +20,11 @@ from config import (
     VEL_KP, VEL_KI, VEL_KD, ALT_KP, ALT_KI, ALT_KD, PID_DERIV_TAU,
     WIND_ACCEL, WIND_TAU, SENSOR_VEL_NOISE, SENSOR_POS_NOISE,
     ANTIWINDUP, AW_KB, ATT_WN, ATT_ZETA, AUTOTUNE, YAW_TAU, THRUST_MAX,
-    MASS, I_XX, I_YY, I_ZZ, ARM_L, THRUST_COEF, DRAG_COEF,
+    MASS, I_XX, I_YY, I_ZZ, ARM_L, THRUST_COEF, DRAG_COEF, DRAG_LIN,
 )
 from physics import (
-    Gravity, Thrust, rotation_matrix, attitude_step, PID, Wind, semi_implicit_euler,
+    Gravity, Thrust, rotation_matrix, euler_step, air_density, RHO0,
+    PID, Wind, semi_implicit_euler,
 )
 
 # X-konfigürasyonu: dört kol köşegen yönlerde (gövde frame'i)
@@ -59,14 +60,14 @@ class Drone:
     def reset(self):
         self.pos = np.array([0.0, 0.0, DRONE_START_Z], dtype=float)
         self.vel = np.zeros(3, dtype=float)
-        self.roll = 0.0          # gerçek eğim (2. mertebe dinamikle komuta ulaşır)
+        self.roll = 0.0          # gerçek eğim (Euler dinamiğiyle torka tepki verir)
         self.pitch = 0.0
-        self.roll_rate = 0.0
-        self.pitch_rate = 0.0
+        self.yaw = 0.0
+        self.wx = 0.0            # gövde açısal hızları (p, q, r)
+        self.wy = 0.0
+        self.wz = 0.0
         self.roll_cmd = 0.0      # PID'in komut ettiği eğim
         self.pitch_cmd = 0.0
-        self.yaw = 0.0
-        self.yaw_rate = 0.0
         self.throttle = HOVER_THROTTLE
 
         # Fiziksel model çıktıları (tork ve rotor hızları)
@@ -87,16 +88,12 @@ class Drone:
             pid.reset()
         self.wind.reset()
 
-    def _update_motor(self, roll_acc, pitch_acc, yaw_acc):
+    def _update_rotor(self):
         """
-        Açısal ivmelerden torkları (τ = I·ivme) ve toplam itkiden rotor hızlarını
-        (mixing denklemleri) hesaplar. Bu değerler tez modeliyle birebir; uçuş
-        davranışını değiştirmez, yalnızca fiziksel seviyeyi görünür kılar.
+        Kontrolcü torkları (τ_φ, τ_θ, τ_ψ) ve toplam itkiden rotor hızlarını
+        (mixing denklemleri) çözer — tez modeliyle birebir.
         """
-        tau_phi = I_XX * roll_acc
-        tau_theta = I_YY * pitch_acc
-        tau_psi = I_ZZ * yaw_acc
-        self.torque = (tau_phi, tau_theta, tau_psi)
+        tau_phi, tau_theta, tau_psi = self.torque
 
         # Toplam itki kuvveti (gövde-yukarı): T = m · (gaz·itki_ivmesi)
         T = MASS * self.throttle * THRUST_MAX
@@ -117,12 +114,6 @@ class Drone:
         return bool(np.any(self.cmd_vel))
 
     def update(self, dt):
-        # --- Yaw: manuel (1. mertebe hız gecikmesiyle) ---
-        yaw_rate_cmd = self.cmd_yaw * YAW_RATE
-        yaw_acc = (yaw_rate_cmd - self.yaw_rate) / YAW_TAU
-        self.yaw_rate += yaw_acc * dt
-        self.yaw += self.yaw_rate * dt
-
         # --- İrtifa hedefi (W/S ile kayar) ---
         self.z_target = float(np.clip(self.z_target + self.cmd_climb * CLIMB_RATE * dt,
                                       0.0, CEIL_Z))
@@ -148,27 +139,38 @@ class Drone:
         self.roll_cmd = self.vx_pid.update(vel_sp[0] - vx_meas, dt, measurement=vx_meas)
         self.pitch_cmd = -self.vy_pid.update(vel_sp[1] - vy_meas, dt, measurement=vy_meas)
 
-        # --- Eğim iç dinamiği: gerçek eğim komuta 2. mertebe ile ulaşır ---
-        # Açısal ivmeler (PD yasası): θ'' = ωn²(θc-θ) - 2ζωn·θ'
-        roll_acc = ATT_WN * ATT_WN * (self.roll_cmd - self.roll) - 2.0 * ATT_ZETA * ATT_WN * self.roll_rate
-        pitch_acc = ATT_WN * ATT_WN * (self.pitch_cmd - self.pitch) - 2.0 * ATT_ZETA * ATT_WN * self.pitch_rate
-        self.roll, self.roll_rate = attitude_step(self.roll, self.roll_rate, self.roll_cmd, ATT_WN, ATT_ZETA, dt)
-        self.pitch, self.pitch_rate = attitude_step(self.pitch, self.pitch_rate, self.pitch_cmd, ATT_WN, ATT_ZETA, dt)
+        # --- Yönelim kontrolcüleri -> tork ---
+        # roll/pitch: PD (açı hedefi = eğim komutu); yaw: hız kontrolü (P)
+        tau_phi = I_XX * (ATT_WN * ATT_WN * (self.roll_cmd - self.roll) - 2.0 * ATT_ZETA * ATT_WN * self.wx)
+        tau_theta = I_YY * (ATT_WN * ATT_WN * (self.pitch_cmd - self.pitch) - 2.0 * ATT_ZETA * ATT_WN * self.wy)
+        yaw_rate_cmd = self.cmd_yaw * YAW_RATE
+        tau_psi = I_ZZ * (yaw_rate_cmd - self.wz) / YAW_TAU
+        self.torque = (tau_phi, tau_theta, tau_psi)
+
+        # --- Euler dönme dinamiği: ω̇ = I⁻¹(τ - ω×Iω); açılar ω'dan entegre ---
+        self.wx, self.wy, self.wz = euler_step(
+            (self.wx, self.wy, self.wz), self.torque, (I_XX, I_YY, I_ZZ), dt)
+        self.roll += self.wx * dt
+        self.pitch += self.wy * dt
+        self.yaw += self.wz * dt
 
         # --- İrtifa PID -> gaz (hover ileri beslemesi + düzeltme) ---
         self.throttle = float(np.clip(
             HOVER_THROTTLE + self.alt_pid.update(self.z_target - z_meas, dt, measurement=z_meas),
             0.0, 1.0))
 
-        # --- Fiziksel model: torklar ve rotor hızları (τ = I·açısal_ivme) ---
-        self._update_motor(roll_acc, pitch_acc, yaw_acc)
+        # --- Rotor hızları (mixing denklemleri, tork + toplam itkiden) ---
+        self._update_rotor()
 
-        # --- Dinamik (rüzgâr türbülansı dahil) ---
+        # --- Dinamik: yerçekimi + itki + rüzgâr + hava sürtünmesi (F_D = -k_d·v) ---
+        # İtki hava yoğunluğuyla orantılı (T ∝ ρ); yükseklikte azalır.
+        self.rho_factor = air_density(self.pos[2]) / RHO0
         self.R = rotation_matrix(self.roll, self.pitch, self.yaw)
         body_up = self.R[:, 2]
         acc = (self.gravity.acceleration()
-               + self.thrust.acceleration(body_up, self.throttle)
-               + self.wind.acceleration(dt))
+               + self.thrust.acceleration(body_up, self.throttle) * self.rho_factor
+               + self.wind.acceleration(dt)
+               - (DRAG_LIN / MASS) * self.vel)
         self.pos, self.vel = semi_implicit_euler(self.pos, self.vel, acc, dt)
 
         # --- Sınırlar: drone ekran/oyun alanından çıkamaz ---

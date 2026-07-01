@@ -15,6 +15,9 @@ FPS = 60
 # Fizik (dünya birimi / saniye^2), -z yönünde uygulanır
 GRAVITY = 12.0
 
+# Hava sürtünmesi (drag): F_D = -k_d · v  (doğrusal sönümleme)
+DRAG_LIN = 0.3
+
 # İtki (thrust) — gövde-yukarı ekseni boyunca
 THRUST_MAX = 22.0        # tam gazda ivme (yerçekimini yenmeli: > GRAVITY)
 THROTTLE_RATE = 0.9      # gaz seviyesinin saniyedeki değişimi (W/S)

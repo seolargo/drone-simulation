@@ -16,6 +16,8 @@ tabs.forEach((btn) => {
 
 // Gruplu bölümlerin sırası ve başlıkları
 const GROUP_SECTIONS = [
+  ["prop", "Pervane — thrust (blade element, T = k·ω²)"],
+  ["atmos", "Hava yoğunluğu — irtifayla değişim"],
   ["gps", "GPS alıcısı"],
   ["baro", "Barometre — basınçtan irtifa"],
   ["flow", "Optik akış sensörü"],

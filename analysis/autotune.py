@@ -16,7 +16,7 @@ muhafazakâr, daha az aşımlı):
 
 import numpy as np
 
-from config import GRAVITY, ATT_WN, ATT_ZETA
+from config import GRAVITY, ATT_WN, ATT_ZETA, DRAG_LIN
 from physics import attitude_step
 
 RELAY_D = 0.10       # röle eğim genliği (rad ~ 5.7°)
@@ -40,7 +40,7 @@ def relay_tune(d=RELAY_D, dt=DT, duration=DURATION):
         elif e < 0.0:
             relay = -d                # ideal röle (histerezissiz); periyodu eğim dinamiği belirler
         roll, rate = attitude_step(roll, rate, relay, ATT_WN, ATT_ZETA, dt)
-        vx += GRAVITY * np.sin(roll) * dt
+        vx += (GRAVITY * np.sin(roll) - DRAG_LIN * vx) * dt
         t += dt
         ts.append(t); vxs.append(vx); us.append(np.degrees(roll)); rel.append(relay)
         if prev_vx < 0.0 <= vx:       # yükselen sıfır geçişi

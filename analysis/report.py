@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 
 from .svgchart import line_chart, relay_chart, xy_chart
+from physics import air_density
+from config import THRUST_COEF
 from . import awdemo
 from . import magnetometer
 from . import ultrasonic
@@ -192,6 +194,20 @@ def generate(tel, out_dir, source="", when="", tune=None):
         _series(t, us_raw2, "ultrasonik (gurultulu)", "#e0685f"),
         _series(t, tof_vals, "ToF / Lidar", "#6fa8e6"),
     ]), "ToF / Lidar distance", group="tof")
+
+    # 21) Hava yoğunluğu — irtifayla değişim (itki ∝ ρ)
+    alts = [h * 100.0 for h in range(0, 51)]        # 0..5000 m
+    write("atmos.svg", line_chart("Air density vs altitude", "irtifa (m)", "ρ (kg/m³)", [
+        _series(alts, [air_density(h) for h in alts], "hava yogunlugu ρ", "#6fa8e6"),
+    ]), "Air density vs altitude", group="atmos")
+
+    # 22) Pervane thrust — blade element sonucu T_i = k·ω_i² (uçuş boyunca rotor başına)
+    write("prop.svg", line_chart("Propeller thrust  T_i = k·ω_i²", "t (s)", "T_i (N)", [
+        _series(t, [THRUST_COEF * w * w for w in tel.w1], "T1", "#6fa8e6"),
+        _series(t, [THRUST_COEF * w * w for w in tel.w2], "T2", "#f0b446"),
+        _series(t, [THRUST_COEF * w * w for w in tel.w3], "T3", "#8ad0a0"),
+        _series(t, [THRUST_COEF * w * w for w in tel.w4], "T4", "#e0685f"),
+    ]), "Propeller thrust (T = k·ω²)", group="prop")
 
     # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
     tune_meta = None
