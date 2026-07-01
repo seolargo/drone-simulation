@@ -3,12 +3,18 @@ Uygulama — pygame'i kurar, olayları işler ve ana döngüyü çalıştırır.
 """
 
 import sys
+from pathlib import Path
+from datetime import datetime
 
 import pygame
 
 from config import WIDTH, HEIGHT, FPS, CMD_SPEED
 from entities import Drone
 from rendering import Renderer
+from analysis.telemetry import Telemetry
+from analysis import report
+
+OUTPUTS_DIR = Path(__file__).resolve().parents[1] / "web" / "outputs"
 
 
 class App:
@@ -22,6 +28,9 @@ class App:
         self.drone = Drone()
         self.paused = False
         self.running = True
+
+        self.telemetry = Telemetry()
+        self.time = 0.0
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -53,7 +62,16 @@ class App:
             if not self.paused:
                 self.poll_control()
                 self.drone.update(dt)
+                self.time += dt
+                self.telemetry.record(self.time, self.drone)
             self.renderer.draw(self.drone, self.paused)
+
+        # Bu oturumun telemetrisinden web çıktılarını üret
+        try:
+            when = datetime.now().strftime("%Y-%m-%d %H:%M")
+            report.generate(self.telemetry, OUTPUTS_DIR, source="canlı oturum", when=when)
+        except Exception:
+            pass
 
         pygame.quit()
         sys.exit()

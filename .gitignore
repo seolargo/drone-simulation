@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# Üretilen simülasyon çıktıları (her koşuda yeniden generate edilir)
+web/outputs/

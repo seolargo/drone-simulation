@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drone Simülasyonu — Gelişim Günlüğü</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 220 200" width="200" height="182" role="img">
+          <defs>
+            <radialGradient id="glow" cx="50%" cy="45%" r="55%">
+              <stop offset="0%" stop-color="#4682c8" stop-opacity=".45" />
+              <stop offset="100%" stop-color="#4682c8" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#6fa8e6" />
+              <stop offset="100%" stop-color="#3a6fb0" />
+            </linearGradient>
+          </defs>
+
+          <circle cx="110" cy="92" r="100" fill="url(#glow)" />
+
+          <!-- kollar (X) -->
+          <g stroke="#5a8fd0" stroke-width="7" stroke-linecap="round">
+            <line x1="110" y1="92" x2="46"  y2="44" />
+            <line x1="110" y1="92" x2="174" y2="44" />
+            <line x1="110" y1="92" x2="46"  y2="140" />
+            <line x1="110" y1="92" x2="174" y2="140" />
+          </g>
+
+          <!-- pervaneler -->
+          <g>
+            <g class="rotor" style="--cx:46px;  --cy:44px">
+              <circle cx="46" cy="44" r="30" fill="#4682c8" fill-opacity=".12" stroke="#aac8eb" stroke-width="1.6" />
+              <g class="blades"><ellipse cx="46" cy="44" rx="29" ry="6" fill="#eef2fa" fill-opacity=".75" /><ellipse cx="46" cy="44" rx="6" ry="29" fill="#eef2fa" fill-opacity=".75" /></g>
+            </g>
+            <g class="rotor" style="--cx:174px; --cy:44px">
+              <circle cx="174" cy="44" r="30" fill="#4682c8" fill-opacity=".12" stroke="#aac8eb" stroke-width="1.6" />
+              <g class="blades"><ellipse cx="174" cy="44" rx="29" ry="6" fill="#eef2fa" fill-opacity=".75" /><ellipse cx="174" cy="44" rx="6" ry="29" fill="#eef2fa" fill-opacity=".75" /></g>
+            </g>
+            <g class="rotor" style="--cx:46px;  --cy:140px">
+              <circle cx="46" cy="140" r="30" fill="#4682c8" fill-opacity=".12" stroke="#aac8eb" stroke-width="1.6" />
+              <g class="blades"><ellipse cx="46" cy="140" rx="29" ry="6" fill="#eef2fa" fill-opacity=".75" /><ellipse cx="46" cy="140" rx="6" ry="29" fill="#eef2fa" fill-opacity=".75" /></g>
+            </g>
+            <g class="rotor" style="--cx:174px; --cy:140px">
+              <circle cx="174" cy="140" r="30" fill="#4682c8" fill-opacity=".12" stroke="#aac8eb" stroke-width="1.6" />
+              <g class="blades"><ellipse cx="174" cy="140" rx="29" ry="6" fill="#eef2fa" fill-opacity=".75" /><ellipse cx="174" cy="140" rx="6" ry="29" fill="#eef2fa" fill-opacity=".75" /></g>
+            </g>
+          </g>
+
+          <!-- gövde -->
+          <rect x="86" y="68" width="48" height="48" rx="12" fill="url(#body)" stroke="#86b4e8" stroke-width="1.5" />
+          <circle cx="110" cy="92" r="7" fill="#0f121c" stroke="#aac8eb" stroke-width="1.5" />
+          <circle cx="110" cy="108" r="4" fill="#f0b446" />
+        </svg>
+      </div>
+      <h1>Drone Simülasyonu</h1>
+      <p class="lead">
+        Ekranda zıplayan toplarla başlayan basit bir programın, adım adım
+        <strong>kendi başına havada durabilen, gerçek gibi davranan bir drone'a</strong>
+        dönüşme hikâyesi. Her adımda biraz daha gerçekçi hâle geldi.
+      </p>
+    </div>
+  </header>
+
+  <!-- Sekmeler -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="overview">Genel Bakış</button>
+    <button class="tab" data-tab="axes">Roll · Pitch · Yaw</button>
+    <button class="tab" data-tab="outputs">Çıktılar</button>
+  </nav>
+
+  <!-- ===== Sekme: Genel Bakış ===== -->
+  <div id="overview" class="tabpanel">
+
+  <!-- Yolculuk -->
+  <section class="section">
+    <h2><span class="num">01</span> Gelişim Yolculuğu</h2>
+    <ol class="timeline">
+      <li>
+        <h3>Düşen bir drone</h3>
+        <p>Başlangıçta ekranda zıplayan toplar vardı. İlk adımda bunları, yerçekimiyle
+        yukarıdan aşağı düşen tek bir drone'a dönüştürdük.</p>
+      </li>
+      <li>
+        <h3>3 boyutlu görünüm</h3>
+        <p>Drone'u, dönen pervaneleri olan üç boyutlu bir araca çevirdik. Altında bir
+        zemin ve gölgesi belirdi; böylece havada nerede olduğu net görülüyor.</p>
+      </li>
+      <li>
+        <h3>Havalanma</h3>
+        <p>Drone'a yukarı itme gücü verdik. Artık sadece düşmüyor; havalanabiliyor,
+        yere inebiliyor ve tekrar yükselebiliyor.</p>
+      </li>
+      <li>
+        <h3>Yön ve eğilme</h3>
+        <p>Drone artık öne, arkaya, yanlara eğilebiliyor ve kendi etrafında dönebiliyor.
+        Tıpkı gerçek bir drone gibi, eğildiği yöne doğru süzülerek uçuyor.</p>
+      </li>
+      <li>
+        <h3>Ekranda kalması</h3>
+        <p>Drone'un uçarken ekrandan dışarı kaçması engellendi. Hangi yöne giderse gitsin
+        görüş alanının içinde kalıyor.</p>
+      </li>
+      <li>
+        <h3>Otomatik pilot</h3>
+        <p>Yön tuşları artık drone'u doğrudan eğmiyor; ona "şu yöne git" diyor. Drone
+        gerekeni kendisi hesaplıyor, tuşu bırakınca yavaşlayıp olduğu yerde duruyor.</p>
+      </li>
+      <li>
+        <h3>Gerçekçi havada durma</h3>
+        <p>Gerçek bir drone havada asla kıpırtısız durmaz. Rüzgâr ve küçük dengesizlikler
+        ekledik; drone artık bir noktada dururken <em>hafifçe titreyerek</em> dengesini
+        sürekli düzeltiyor — tıpkı gerçeği gibi.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Mimari -->
+  <section class="section">
+    <h2><span class="num">02</span> Kod Mimarisi</h2>
+    <p class="muted">Proje tek bir dev dosya değil; her parça kendi işinden sorumlu
+    ayrı bölümlere ayrıldı. Böylece bir şeyi değiştirmek istediğimizde nereye
+    bakacağımız belli oluyor.</p>
+    <div class="modgrid">
+      <div class="mod"><h4>config.py</h4>
+        <p>Drone'un hızı, ağırlığı, kamera açısı gibi tüm ayarların toplandığı yer.
+        Bir değeri değiştirmek için tek bir dosyaya bakmak yeterli.</p></div>
+      <div class="mod accent"><h4>physics/</h4>
+        <p>Drone'un nasıl davrandığını belirleyen tüm kurallar burada: yerçekimi,
+        itme gücü, eğilme, rüzgâr ve dengeyi sağlayan <b>otomatik pilot</b>.</p></div>
+      <div class="mod"><h4>entities/</h4>
+        <p>Drone'un kendisi — o anki konumu, hızı ve dengesi burada tutulur, şekli
+        de buradan oluşturulur.</p></div>
+      <div class="mod"><h4>rendering/</h4>
+        <p>Sahnenin ekrana çizilmesinden sorumlu kısım: drone'a hangi açıdan
+        baktığımız ve her karenin nasıl resmedildiği.</p></div>
+      <div class="mod"><h4>simulation/</h4>
+        <p>Programı başlatan ve saniyede onlarca kez tekrar çalışarak görüntüyü
+        canlı tutan ana döngü.</p></div>
+      <div class="mod"><h4>main.py</h4>
+        <p>Her şeyi başlatan giriş kapısı; programı çalıştırınca ilk burası devreye
+        girer.</p></div>
+    </div>
+  </section>
+
+  <!-- Kavramlar -->
+  <section class="section">
+    <h2><span class="num">03</span> Anahtar Fizik / Kontrol Kavramları</h2>
+    <div class="cards">
+      <article class="card"><h4>Gravity &amp; Motion</h4>
+        <p>Drone'u sürekli aşağı çeken bir yerçekimi var. Her an konumu ve hızı yeniden
+        hesaplanır; tüm hareketin temeli bu basit kural.</p></article>
+      <article class="card"><h4>Thrust</h4>
+        <p>Pervanelerin ürettiği itme gücü drone'u yukarı kaldırır. Drone eğildiğinde bu
+        güç bir miktar yana döner ve drone o yöne doğru süzülür.</p></article>
+      <article class="card"><h4>Orientation</h4>
+        <p>Drone'un öne, arkaya ya da yanlara ne kadar eğildiği ve hangi yöne baktığı
+        sürekli izlenir; gövdesi de tam olarak buna göre çizilir.</p></article>
+      <article class="card"><h4>PID Controller</h4>
+        <p>Drone'un beyni. Olmak istediği yer ile gerçekte bulunduğu yer arasındaki farkı
+        ölçer ve bu farkı kapatmak için ne kadar eğilip ne kadar güç vermesi gerektiğine
+        anlık karar verir.</p></article>
+      <article class="card"><h4>Position Hold</h4>
+        <p>Drone önce "nereye gitmeliyim", sonra "ne kadar hızlı" ve en sonunda "ne kadar
+        eğilmeli" diye karar verir. Bu sıralı mantık sayesinde tek bir noktaya kilitlenir.</p></article>
+      <article class="card"><h4>Turbulence &amp; Noise</h4>
+        <p>Gerçek hayattaki rüzgâr ve küçük ölçüm hataları taklit edildi. Bu yüzden drone
+        havada hafifçe titrer; otomatik pilot da dengeyi durmadan düzeltir.</p></article>
+    </div>
+  </section>
+
+  </div><!-- /overview -->
+
+  <!-- ===== Sekme: Roll · Pitch · Yaw ===== -->
+  <div id="axes" class="tabpanel hidden">
+    <section class="section">
+      <h2><span class="num">✦</span> Roll · Pitch · Yaw</h2>
+      <p class="muted">Drone'un üç dönüş hareketi ve bunların hangi eksen etrafında,
+      ne kadar açıyla gerçekleştiği. Soluk drone "düz/seviye" referans, dolu drone ise
+      dönmüş hâlidir.</p>
+
+      <div class="axisgrid">
+
+        <!-- 1) Eksen referansı (3B) -->
+        <article class="axiscard">
+          <h4>Eksenler (3B)</h4>
+          <svg viewBox="0 0 320 250" role="img" aria-label="X Y Z eksen referansı">
+            <!-- eksenler -->
+            <g stroke="#8a93ac" stroke-width="1.6" fill="none">
+              <line x1="150" y1="150" x2="150" y2="56" />     <!-- Z up -->
+              <line x1="150" y1="150" x2="233" y2="197" />    <!-- X down-right -->
+              <line x1="150" y1="150" x2="67"  y2="197" />    <!-- Y down-left -->
+            </g>
+            <polygon points="150,50 145,63 155,63" fill="#8a93ac" />
+            <polygon points="233,197 220.1,195.4 225.1,186.6" fill="#8a93ac" />
+            <polygon points="67,197 79.9,195.4 74.9,186.6" fill="#8a93ac" />
+            <!-- drone (üstten) -->
+            <g transform="translate(150,150)">
+              <line x1="-18" y1="-18" x2="18" y2="18" stroke="#5a8fd0" stroke-width="3" />
+              <line x1="-18" y1="18"  x2="18" y2="-18" stroke="#5a8fd0" stroke-width="3" />
+              <circle cx="-18" cy="-18" r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="18"  cy="-18" r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="-18" cy="18"  r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="18"  cy="18"  r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="0" cy="0" r="6" fill="#4682c8" />
+            </g>
+            <!-- etiketler -->
+            <text x="158" y="60"  fill="#c8cddc" font-size="14" font-family="Menlo,monospace">Z</text>
+            <text x="238" y="201" fill="#c8cddc" font-size="14" font-family="Menlo,monospace">X</text>
+            <text x="40"  y="201" fill="#c8cddc" font-size="14" font-family="Menlo,monospace">Y</text>
+            <text x="120" y="48"  fill="#8a93ac" font-size="11">yukarı</text>
+            <text x="250" y="216" fill="#8a93ac" font-size="11">sağ</text>
+            <text x="20"  y="216" fill="#8a93ac" font-size="11">ileri</text>
+          </svg>
+          <ul class="axislegend">
+            <li><span class="k" style="background:#f0b446"></span> <b>Roll</b> → Y ekseni (yana yatış)</li>
+            <li><span class="k" style="background:#f0b446"></span> <b>Pitch</b> → X ekseni (burun yukarı/aşağı)</li>
+            <li><span class="k" style="background:#f0b446"></span> <b>Yaw</b> → Z ekseni (burun yönü)</li>
+          </ul>
+        </article>
+
+        <!-- 2) Pitch -->
+        <article class="axiscard">
+          <h4>Pitch — X ekseni etrafında</h4>
+          <svg viewBox="0 0 320 250" role="img" aria-label="Pitch açısı diyagramı">
+            <!-- düzlem eksenleri (Y yatay, Z dikey) -->
+            <g stroke="#8a93ac" stroke-width="1.4">
+              <line x1="50" y1="140" x2="280" y2="140" />
+              <line x1="160" y1="220" x2="160" y2="45" />
+            </g>
+            <polygon points="290,140 277,135 277,145" fill="#8a93ac" />
+            <polygon points="160,40 155,52 165,52" fill="#8a93ac" />
+            <text x="262" y="158" fill="#c8cddc" font-size="13" font-family="Menlo,monospace">Y</text>
+            <text x="168" y="52"  fill="#c8cddc" font-size="13" font-family="Menlo,monospace">Z</text>
+            <!-- seviye (hayalet) -->
+            <g transform="translate(160,140)" opacity="0.28">
+              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" />
+              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+            </g>
+            <!-- dönmüş (burun yukarı, θ) -->
+            <g transform="rotate(-18 160 140) translate(160,140)">
+              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" stroke="#86b4e8" stroke-width="1" />
+              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+              <circle cx="34" cy="0" r="3.5" fill="#f0b446" />
+            </g>
+            <!-- açı yayı θ -->
+            <path d="M212,140 A52,52 0 0 0 209.5,123.9" fill="none" stroke="#f0b446" stroke-width="2" />
+            <text x="216" y="132" fill="#f0b446" font-size="13" font-family="Menlo,monospace">θ = 18°</text>
+            <!-- dönme ekseni X (ekrandan dışarı) -->
+            <circle cx="92" cy="206" r="7" fill="none" stroke="#8a93ac" stroke-width="1.4" />
+            <circle cx="92" cy="206" r="2" fill="#8a93ac" />
+            <text x="104" y="210" fill="#8a93ac" font-size="11">dönme ekseni: X (⊙)</text>
+          </svg>
+          <p class="axisnote">Burun yukarı/aşağı eğilir; drone ileri-geri süzülür.</p>
+        </article>
+
+        <!-- 3) Roll -->
+        <article class="axiscard">
+          <h4>Roll — Y ekseni etrafında</h4>
+          <svg viewBox="0 0 320 250" role="img" aria-label="Roll açısı diyagramı">
+            <g stroke="#8a93ac" stroke-width="1.4">
+              <line x1="50" y1="140" x2="280" y2="140" />
+              <line x1="160" y1="220" x2="160" y2="45" />
+            </g>
+            <polygon points="290,140 277,135 277,145" fill="#8a93ac" />
+            <polygon points="160,40 155,52 165,52" fill="#8a93ac" />
+            <text x="262" y="158" fill="#c8cddc" font-size="13" font-family="Menlo,monospace">X</text>
+            <text x="168" y="52"  fill="#c8cddc" font-size="13" font-family="Menlo,monospace">Z</text>
+            <!-- seviye (hayalet) -->
+            <g transform="translate(160,140)" opacity="0.28">
+              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" />
+              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+            </g>
+            <!-- dönmüş (yana yatış, φ) -->
+            <g transform="rotate(18 160 140) translate(160,140)">
+              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" stroke="#86b4e8" stroke-width="1" />
+              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+            </g>
+            <!-- açı yayı φ -->
+            <path d="M212,140 A52,52 0 0 1 209.5,156.1" fill="none" stroke="#f0b446" stroke-width="2" />
+            <text x="216" y="166" fill="#f0b446" font-size="13" font-family="Menlo,monospace">φ = 18°</text>
+            <!-- dönme ekseni Y -->
+            <circle cx="92" cy="206" r="7" fill="none" stroke="#8a93ac" stroke-width="1.4" />
+            <circle cx="92" cy="206" r="2" fill="#8a93ac" />
+            <text x="104" y="210" fill="#8a93ac" font-size="11">dönme ekseni: Y (⊙)</text>
+          </svg>
+          <p class="axisnote">Sağa/sola yatar; drone yana doğru süzülür.</p>
+        </article>
+
+        <!-- 4) Yaw -->
+        <article class="axiscard">
+          <h4>Yaw — Z ekseni etrafında</h4>
+          <svg viewBox="0 0 320 250" role="img" aria-label="Yaw açısı diyagramı">
+            <!-- X yatay (sağ), Y dikey (ileri = yukarı) -->
+            <g stroke="#8a93ac" stroke-width="1.4">
+              <line x1="50" y1="140" x2="280" y2="140" />
+              <line x1="160" y1="230" x2="160" y2="55" />
+            </g>
+            <polygon points="290,140 277,135 277,145" fill="#8a93ac" />
+            <polygon points="160,50 155,62 165,62" fill="#8a93ac" />
+            <text x="262" y="158" fill="#c8cddc" font-size="13" font-family="Menlo,monospace">X</text>
+            <text x="168" y="62"  fill="#c8cddc" font-size="13" font-family="Menlo,monospace">Y</text>
+            <!-- seviye drone (burun yukarı = ileri), hayalet -->
+            <g transform="translate(160,140)" opacity="0.28">
+              <line x1="-18" y1="-18" x2="18" y2="18" stroke="#5a8fd0" stroke-width="3" />
+              <line x1="-18" y1="18"  x2="18" y2="-18" stroke="#5a8fd0" stroke-width="3" />
+              <circle cx="0" cy="0" r="6" fill="#4682c8" />
+              <line x1="0" y1="0" x2="0" y2="-30" stroke="#aac8eb" stroke-width="2" />
+            </g>
+            <!-- dönmüş (ψ = 45°) -->
+            <g transform="rotate(45 160 140) translate(160,140)">
+              <line x1="-18" y1="-18" x2="18" y2="18" stroke="#5a8fd0" stroke-width="3" />
+              <line x1="-18" y1="18"  x2="18" y2="-18" stroke="#5a8fd0" stroke-width="3" />
+              <circle cx="-18" cy="-18" r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="18"  cy="-18" r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="-18" cy="18"  r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="18"  cy="18"  r="5" fill="#4682c8" stroke="#aac8eb" />
+              <circle cx="0" cy="0" r="6" fill="#4682c8" />
+              <line x1="0" y1="0" x2="0" y2="-32" stroke="#f0b446" stroke-width="2.5" />
+              <polygon points="0,-36 -4,-28 4,-28" fill="#f0b446" />
+            </g>
+            <!-- açı yayı ψ -->
+            <path d="M160,88 A52,52 0 0 1 196.8,103.2" fill="none" stroke="#f0b446" stroke-width="2" />
+            <text x="198" y="98" fill="#f0b446" font-size="13" font-family="Menlo,monospace">ψ = 45°</text>
+            <!-- dönme ekseni Z -->
+            <circle cx="92" cy="210" r="7" fill="none" stroke="#8a93ac" stroke-width="1.4" />
+            <circle cx="92" cy="210" r="2" fill="#8a93ac" />
+            <text x="104" y="214" fill="#8a93ac" font-size="11">dönme ekseni: Z (⊙)</text>
+          </svg>
+          <p class="axisnote">Burun yönü döner; drone bulunduğu yerde kendi etrafında döner.</p>
+        </article>
+
+      </div>
+    </section>
+  </div><!-- /axes -->
+
+  <!-- ===== Sekme: Çıktılar ===== -->
+  <div id="outputs" class="tabpanel hidden">
+    <section class="section">
+      <h2><span class="num">✦</span> Simülasyon Çıktıları</h2>
+      <p class="muted">Her simülasyon koşusunda (canlı <code>main.py</code> oturumu ya da
+      <code>tools/generate_report.py</code>) drone'un gerçek telemetrisinden bu grafikler
+      yeniden üretilir.</p>
+
+      <p id="runmeta" class="run-meta"></p>
+      <div id="outgallery" class="outgallery"></div>
+      <p id="outempty" class="empty-note">Henüz çıktı yok — simülasyonu çalıştır:
+      <code>python main.py</code> ya da <code>python tools/generate_report.py</code>.</p>
+    </section>
+  </div><!-- /outputs -->
+
+  <footer class="foot">
+    <p>Drone Simülasyonu · gelişim günlüğü</p>
+  </footer>
+
+  <script src="outputs/manifest.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
