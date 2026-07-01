@@ -21,6 +21,8 @@ from . import gps as gpsmod
 from . import barometer
 from . import opticalflow
 from . import tof as tofmod
+from . import geodetic as geo
+from . import rotcheck
 
 
 def _series(t, v, label, color, dashed=False):
@@ -218,6 +220,20 @@ def generate(tel, out_dir, source="", when="", tune=None):
         _series(mt, [w / wmax for w in mw], "ω (hiz)", "#6fa8e6"),
         _series(mt, [i / imax for i in mi], "akim I", "#e0685f"),
     ]), "DC motor (back-EMF)", group="motor")
+
+    # 24) Rotation matrix doğrulaması: R Rᵀ = I, det(R) = 1
+    dets, orth = rotcheck.run()
+    ridx = list(range(len(dets)))
+    write("rotcheck.svg", line_chart("Rotation matrix: det(R)=1, ||R Rt - I|| = 0", "ornek", "deger", [
+        _series(ridx, dets, "det(R)", "#6fa8e6"),
+        _series(ridx, orth, "||R Rt - I|| (~0)", "#e0685f"),
+    ]), "Rotation matrix verification", group="rotcheck")
+
+    # 25) Geodetic (enlem/boylam) — GPS uçuş yörüngesinin geodetic dönüşümü
+    lats, lons = geo.run(tel.x, tel.y, tel.z)
+    write("geo.svg", xy_chart("GPS trajectory (geodetic)", "boylam (derece)", "enlem (derece)", [
+        {"label": "ucus yorungesi", "color": "#f0b446", "pts": list(zip(lons, lats))},
+    ]), "GPS geodetic (lat/lon)", group="geo")
 
     # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
     tune_meta = None

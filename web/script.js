@@ -20,6 +20,8 @@ const GROUP_SECTIONS = [
   ["prop", "Pervane — thrust (blade element, T = k·ω²)"],
   ["atmos", "Hava yoğunluğu — irtifayla değişim"],
   ["gps", "GPS alıcısı"],
+  ["geo", "GPS — geodetic (enlem/boylam) dönüşümü"],
+  ["rotcheck", "Rotation matrix — RRᵀ=I, det=1 doğrulaması"],
   ["baro", "Barometre — basınçtan irtifa"],
   ["flow", "Optik akış sensörü"],
   ["tof", "ToF / Lidar mesafe sensörü"],
