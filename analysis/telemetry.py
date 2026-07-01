@@ -16,6 +16,9 @@ class Telemetry:
         self.throttle = []
         # Kontrol girdisi u(t) — x ekseni hız PID'inin çıkışı ve P/I/D terimleri (derece)
         self.u = []; self.up = []; self.ui = []; self.ud = []
+        # Fiziksel seviye: torklar (τφ,τθ,τψ) ve rotor hızları (ω1..ω4)
+        self.tphi = []; self.ttheta = []; self.tpsi = []
+        self.w1 = []; self.w2 = []; self.w3 = []; self.w4 = []
 
     def record(self, t, d):
         self.t.append(float(t))
@@ -35,6 +38,9 @@ class Telemetry:
         self.up.append(float(np.degrees(pid.p_term)))
         self.ui.append(float(np.degrees(pid.i_term)))
         self.ud.append(float(np.degrees(pid.d_term)))
+        # Torklar ve rotor hızları
+        self.tphi.append(d.torque[0]); self.ttheta.append(d.torque[1]); self.tpsi.append(d.torque[2])
+        self.w1.append(d.rotor[0]); self.w2.append(d.rotor[1]); self.w3.append(d.rotor[2]); self.w4.append(d.rotor[3])
 
     def __len__(self):
         return len(self.t)

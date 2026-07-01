@@ -24,8 +24,19 @@ MAX_TILT = math.radians(18)     # PID'in komut edebileceği maksimum roll/pitch 
 YAW_RATE = math.radians(75)     # yaw dönüş hızı (rad/s, manuel)
 
 # Eğim iç dinamiği (2. mertebe) — komuta sonlu hızda ulaşır (gerçekçilik + relay auto-tune için gerekli)
+# PD yasasıyla eşdeğer: tau = I(Kp(θc-θ) - Kd·θ'),  Kp = ATT_WN^2,  Kd = 2·ATT_ZETA·ATT_WN
 ATT_WN = 12.0                   # doğal frekans (rad/s)
 ATT_ZETA = 0.7                  # sönüm oranı
+YAW_TAU = 0.15                  # yaw hızı 1. mertebe gecikmesi (s) — τ_ψ transientleri için
+
+# Fiziksel model sabitleri — tork (τ) ve rotor hızı (ω) gösterimi için
+MASS = 1.0                      # kütle
+I_XX = 0.01                     # atalet momentleri (roll/pitch/yaw)
+I_YY = 0.01
+I_ZZ = 0.02
+ARM_L = 0.25                    # L — kol uzunluğu
+THRUST_COEF = 1.2e-5            # k — itki katsayısı  (F_i = k·ω_i^2)
+DRAG_COEF = 3.0e-7             # b — sürükleme/yaw katsayısı
 
 # Otomatik uçuş kontrolü (PID)
 CMD_SPEED = 3.0          # ok tuşlarının komut verdiği maksimum yatay hız (birim/s)

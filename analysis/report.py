@@ -76,7 +76,22 @@ def generate(tel, out_dir, source="", when="", tune=None):
         _series(t, tel.ud, "D", "#e0685f"),
     ]), "Control input u(t)")
 
-    # 6-7) Anti-windup karşılaştırması (aynı PID sınıfı, doygun sistemde)
+    # 6) Gövde torkları (PD kontrol -> τ = I·açısal ivme)
+    write("tork.svg", line_chart("Body torques  τ = I·(angular accel)", "t (s)", "τ (N·m)", [
+        _series(t, tel.tphi, "τφ (roll)", "#6fa8e6"),
+        _series(t, tel.ttheta, "τθ (pitch)", "#f0b446"),
+        _series(t, tel.tpsi, "τψ (yaw)", "#8ad0a0"),
+    ]), "Body torques (τφ, τθ, τψ)")
+
+    # 7) Rotor hızları (mixing denklemleri: ω_i² = T/4k ± τ/2kL ± τψ/4b)
+    write("rotor.svg", line_chart("Rotor speeds  ω1..ω4", "t (s)", "ω (rad/s)", [
+        _series(t, tel.w1, "ω1", "#6fa8e6"),
+        _series(t, tel.w2, "ω2", "#f0b446"),
+        _series(t, tel.w3, "ω3", "#8ad0a0"),
+        _series(t, tel.w4, "ω4", "#e0685f"),
+    ]), "Rotor speeds (ω1..ω4)")
+
+    # 8-9) Anti-windup karşılaştırması (aynı PID sınıfı, doygun sistemde)
     tn, xn, in_ = awdemo.run("none")
     tc, xc, ic = awdemo.run("clamp")
     tb, xb, ib = awdemo.run("backcalc")

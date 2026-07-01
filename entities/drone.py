@@ -19,7 +19,8 @@ from config import (
     MAX_TILT, YAW_RATE, CLIMB_RATE, HOVER_THROTTLE, CMD_SPEED, POS_KP,
     VEL_KP, VEL_KI, VEL_KD, ALT_KP, ALT_KI, ALT_KD, PID_DERIV_TAU,
     WIND_ACCEL, WIND_TAU, SENSOR_VEL_NOISE, SENSOR_POS_NOISE,
-    ANTIWINDUP, AW_KB, ATT_WN, ATT_ZETA, AUTOTUNE,
+    ANTIWINDUP, AW_KB, ATT_WN, ATT_ZETA, AUTOTUNE, YAW_TAU, THRUST_MAX,
+    MASS, I_XX, I_YY, I_ZZ, ARM_L, THRUST_COEF, DRAG_COEF,
 )
 from physics import (
     Gravity, Thrust, rotation_matrix, attitude_step, PID, Wind, semi_implicit_euler,
@@ -65,7 +66,12 @@ class Drone:
         self.roll_cmd = 0.0      # PID'in komut ettiği eğim
         self.pitch_cmd = 0.0
         self.yaw = 0.0
+        self.yaw_rate = 0.0
         self.throttle = HOVER_THROTTLE
+
+        # Fiziksel model çıktıları (tork ve rotor hızları)
+        self.torque = (0.0, 0.0, 0.0)          # τ_φ, τ_θ, τ_ψ
+        self.rotor = (0.0, 0.0, 0.0, 0.0)      # ω_1..ω_4
         self.z_target = DRONE_START_Z
 
         # Kontrol girdileri (app tarafından doldurulur)
@@ -81,14 +87,41 @@ class Drone:
             pid.reset()
         self.wind.reset()
 
+    def _update_motor(self, roll_acc, pitch_acc, yaw_acc):
+        """
+        Açısal ivmelerden torkları (τ = I·ivme) ve toplam itkiden rotor hızlarını
+        (mixing denklemleri) hesaplar. Bu değerler tez modeliyle birebir; uçuş
+        davranışını değiştirmez, yalnızca fiziksel seviyeyi görünür kılar.
+        """
+        tau_phi = I_XX * roll_acc
+        tau_theta = I_YY * pitch_acc
+        tau_psi = I_ZZ * yaw_acc
+        self.torque = (tau_phi, tau_theta, tau_psi)
+
+        # Toplam itki kuvveti (gövde-yukarı): T = m · (gaz·itki_ivmesi)
+        T = MASS * self.throttle * THRUST_MAX
+        k, b, L = THRUST_COEF, DRAG_COEF, ARM_L
+        base = T / (4.0 * k)
+        r = tau_phi / (2.0 * k * L)
+        p = tau_theta / (2.0 * k * L)
+        y = tau_psi / (4.0 * b)
+        w1 = base - r + y      # ω_1² = T/4k - τφ/2kL + τψ/4b
+        w2 = base - p - y      # ω_2² = T/4k - τθ/2kL - τψ/4b
+        w3 = base + r + y      # ω_3² = T/4k + τφ/2kL + τψ/4b
+        w4 = base + p - y      # ω_4² = T/4k + τθ/2kL - τψ/4b
+        self.rotor = tuple(float(np.sqrt(max(0.0, w))) for w in (w1, w2, w3, w4))
+
     @property
     def pid_active(self):
         """Yön tuşlarıyla hız komutu verildi mi (PID 'devrede' göstergesi)."""
         return bool(np.any(self.cmd_vel))
 
     def update(self, dt):
-        # --- Yaw: manuel ---
-        self.yaw += self.cmd_yaw * YAW_RATE * dt
+        # --- Yaw: manuel (1. mertebe hız gecikmesiyle) ---
+        yaw_rate_cmd = self.cmd_yaw * YAW_RATE
+        yaw_acc = (yaw_rate_cmd - self.yaw_rate) / YAW_TAU
+        self.yaw_rate += yaw_acc * dt
+        self.yaw += self.yaw_rate * dt
 
         # --- İrtifa hedefi (W/S ile kayar) ---
         self.z_target = float(np.clip(self.z_target + self.cmd_climb * CLIMB_RATE * dt,
@@ -116,6 +149,9 @@ class Drone:
         self.pitch_cmd = -self.vy_pid.update(vel_sp[1] - vy_meas, dt, measurement=vy_meas)
 
         # --- Eğim iç dinamiği: gerçek eğim komuta 2. mertebe ile ulaşır ---
+        # Açısal ivmeler (PD yasası): θ'' = ωn²(θc-θ) - 2ζωn·θ'
+        roll_acc = ATT_WN * ATT_WN * (self.roll_cmd - self.roll) - 2.0 * ATT_ZETA * ATT_WN * self.roll_rate
+        pitch_acc = ATT_WN * ATT_WN * (self.pitch_cmd - self.pitch) - 2.0 * ATT_ZETA * ATT_WN * self.pitch_rate
         self.roll, self.roll_rate = attitude_step(self.roll, self.roll_rate, self.roll_cmd, ATT_WN, ATT_ZETA, dt)
         self.pitch, self.pitch_rate = attitude_step(self.pitch, self.pitch_rate, self.pitch_cmd, ATT_WN, ATT_ZETA, dt)
 
@@ -123,6 +159,9 @@ class Drone:
         self.throttle = float(np.clip(
             HOVER_THROTTLE + self.alt_pid.update(self.z_target - z_meas, dt, measurement=z_meas),
             0.0, 1.0))
+
+        # --- Fiziksel model: torklar ve rotor hızları (τ = I·açısal_ivme) ---
+        self._update_motor(roll_acc, pitch_acc, yaw_acc)
 
         # --- Dinamik (rüzgâr türbülansı dahil) ---
         self.R = rotation_matrix(self.roll, self.pitch, self.yaw)
