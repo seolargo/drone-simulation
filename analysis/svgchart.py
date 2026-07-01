@@ -226,3 +226,61 @@ def relay_chart(t, vx, relay, a, Tu, Ku, d, width=640, height=310):
 
     o.append('</svg>')
     return "\n".join(o)
+
+
+def xy_chart(title, xlabel, ylabel, series, width=380, height=360):
+    """
+    Eşit-oranlı (equal aspect) XY grafiği — parametrik eğriler (çember/elips) için.
+    series: [{"label", "color", "pts": [(x, y), ...], "dashed"?}]
+    """
+    title, xlabel, ylabel = _esc(title), _esc(xlabel), _esc(ylabel)
+    L, R, T, B = 40, 14, 30, 30
+    px0, px1 = L, width - R
+    py0, py1 = T, height - B
+
+    xs = [x for s in series for (x, _) in s["pts"]]
+    ys = [y for s in series for (_, y) in s["pts"]]
+    if not xs:
+        xs, ys = [0.0, 1.0], [0.0, 1.0]
+    cx = (min(xs) + max(xs)) / 2.0
+    cy = (min(ys) + max(ys)) / 2.0
+    span = max(max(xs) - min(xs), max(ys) - min(ys), 1e-6) * 1.25
+    scale = min(px1 - px0, py1 - py0) / span
+    mx = (px0 + px1) / 2.0
+    my = (py0 + py1) / 2.0
+
+    def sx(x):
+        return mx + (x - cx) * scale
+
+    def sy(y):
+        return my - (y - cy) * scale
+
+    o = [f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" '
+         f'class="chart" role="img" aria-label="{title}">',
+         f'<rect x="0" y="0" width="{width}" height="{height}" fill="#161b2b"/>']
+
+    # eksenler (orijinden geçen)
+    o.append(f'<line x1="{sx(cx - span/2):.1f}" y1="{sy(0):.1f}" x2="{sx(cx + span/2):.1f}" y2="{sy(0):.1f}" stroke="#2a3450"/>')
+    o.append(f'<line x1="{sx(0):.1f}" y1="{sy(cy - span/2):.1f}" x2="{sx(0):.1f}" y2="{sy(cy + span/2):.1f}" stroke="#2a3450"/>')
+    # orijin
+    o.append(f'<circle cx="{sx(0):.1f}" cy="{sy(0):.1f}" r="2.5" fill="#8a93ac"/>')
+
+    for s in series:
+        pts = _downsample(s["pts"], 400)
+        d = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for (x, y) in pts)
+        dash = ' stroke-dasharray="6 4"' if s.get("dashed") else ""
+        o.append(f'<polyline fill="none" stroke="{s["color"]}" stroke-width="2"{dash} points="{d}"/>')
+
+    # başlık + eksen adları + lejant
+    o.append(f'<text x="{px0}" y="18" fill="#ffffff" font-size="13" font-family="Menlo,monospace">{title}</text>')
+    o.append(f'<text x="{px1:.0f}" y="{sy(0)-6:.1f}" fill="#8a93ac" font-size="10" text-anchor="end">{xlabel}</text>')
+    o.append(f'<text x="{sx(0)+6:.1f}" y="{py0+10}" fill="#8a93ac" font-size="10">{ylabel}</text>')
+    for i, s in enumerate(series):
+        yy = py1 - 6 - (len(series) - 1 - i) * 15
+        dash = ' stroke-dasharray="6 4"' if s.get("dashed") else ""
+        o.append(f'<line x1="{px0+4}" y1="{yy}" x2="{px0+22}" y2="{yy}" '
+                 f'stroke="{s["color"]}" stroke-width="2.4"{dash}/>')
+        o.append(f'<text x="{px0+27}" y="{yy+3}" fill="#c8cddc" font-size="10" font-family="Menlo,monospace">{_esc(s["label"])}</text>')
+
+    o.append('</svg>')
+    return "\n".join(o)

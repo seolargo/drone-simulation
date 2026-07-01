@@ -8,8 +8,9 @@ okuyup gösterir. Her koşuda üzerine yazılır (yeniden generate).
 import json
 from pathlib import Path
 
-from .svgchart import line_chart, relay_chart
+from .svgchart import line_chart, relay_chart, xy_chart
 from . import awdemo
+from . import magnetometer
 
 
 def _series(t, v, label, color, dashed=False):
@@ -107,6 +108,19 @@ def generate(tel, out_dir, source="", when="", tune=None):
         _series(tb, ib, "back-calculation", "#8ad0a0"),
     ]), "Anti-windup: integral term", group="antiwindup")
 
+    # 10-11) Manyetometre — hard/soft iron kalibrasyonu
+    mg = magnetometer.run()
+    write("mag_cal.svg", xy_chart("Magnetometer  m_x - m_y", "m_x", "m_y", [
+        {"label": "ham (hard/soft iron)", "color": "#e0685f", "pts": mg["raw_xy"]},
+        {"label": "kalibre", "color": "#8ad0a0", "pts": mg["cal_xy"]},
+    ]), "Magnetometer: hard/soft iron", group="mag")
+    write("mag_head.svg", line_chart("Heading — kalibrasyon etkisi", "gercek yaw (derece)", "kestirim (derece)", [
+        _series(mg["yaw_true"], mg["yaw_true"], "ideal (y=x)", "#8a93ac", dashed=True),
+        _series(mg["yaw_true"], mg["head_raw"], "ham", "#e0685f"),
+        _series(mg["yaw_true"], mg["head_cal"], "kalibre", "#8ad0a0"),
+    ]), "Magnetometer: heading", group="mag")
+    mag_meta = {"b": [round(v, 3) for v in mg["b"]], "D": [round(v, 3) for v in mg["D"]]}
+
     # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
     tune_meta = None
     if tune and tune.get("vx"):
@@ -129,6 +143,7 @@ def generate(tel, out_dir, source="", when="", tune=None):
         "samples": len(tel),
         "source": source,
         "tune": tune_meta,
+        "mag": mag_meta,
         "charts": charts,
     }
     (out / "manifest.js").write_text(

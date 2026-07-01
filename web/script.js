@@ -45,6 +45,7 @@ tabs.forEach((btn) => {
 
   const at = data.charts.filter((c) => c.group === "autotune");
   const aw = data.charts.filter((c) => c.group === "antiwindup");
+  const mg = data.charts.filter((c) => c.group === "mag");
   const main = data.charts.filter((c) => !c.group);
 
   // Auto-tune bölümü + Ku/Tu/gain bilgisi
@@ -61,6 +62,17 @@ tabs.forEach((btn) => {
   }
 
   fill(gallery, main);
+
+  // Manyetometre bölümü
+  const magSection = document.getElementById("magsection");
+  if (data.mag && mg.length) {
+    document.getElementById("maginfo").textContent =
+      `Kestirilen hard iron b=[${data.mag.b}]  ·  soft iron D=[${data.mag.D}]  ·  heading hatası: ham ~69° → kalibre ~3°`;
+    fill(document.getElementById("maggallery"), mg);
+    magSection.style.display = "";
+  } else {
+    magSection.style.display = "none";
+  }
 
   if (aw.length) {
     fill(awGallery, aw);
