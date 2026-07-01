@@ -14,6 +14,8 @@ class Telemetry:
         self.tx = []; self.ty = []; self.tz = []        # hedef konum (pos_target, z_target)
         self.roll = []; self.pitch = []; self.yaw = []  # yönelim (derece)
         self.throttle = []
+        # Kontrol girdisi u(t) — x ekseni hız PID'inin çıkışı ve P/I/D terimleri (derece)
+        self.u = []; self.up = []; self.ui = []; self.ud = []
 
     def record(self, t, d):
         self.t.append(float(t))
@@ -27,6 +29,12 @@ class Telemetry:
         self.pitch.append(float(np.degrees(d.pitch)))
         self.yaw.append(float(np.degrees(d.yaw)))
         self.throttle.append(float(d.throttle))
+        # u(t): x ekseni PID çıkışı (drone.roll = vx_pid.out) ve terimleri
+        pid = d.vx_pid
+        self.u.append(float(np.degrees(pid.out)))
+        self.up.append(float(np.degrees(pid.p_term)))
+        self.ui.append(float(np.degrees(pid.i_term)))
+        self.ud.append(float(np.degrees(pid.d_term)))
 
     def __len__(self):
         return len(self.t)

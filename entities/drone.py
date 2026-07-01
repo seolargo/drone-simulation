@@ -19,6 +19,7 @@ from config import (
     MAX_TILT, YAW_RATE, CLIMB_RATE, HOVER_THROTTLE, CMD_SPEED, POS_KP,
     VEL_KP, VEL_KI, VEL_KD, ALT_KP, ALT_KI, ALT_KD, PID_DERIV_TAU,
     WIND_ACCEL, WIND_TAU, SENSOR_VEL_NOISE, SENSOR_POS_NOISE,
+    ANTIWINDUP, AW_KB,
 )
 from physics import Gravity, Thrust, rotation_matrix, PID, Wind, semi_implicit_euler
 
@@ -27,14 +28,16 @@ _ARM_DIRS = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
 
 
 class Drone:
-    def __init__(self, gravity=None, thrust=None):
+    def __init__(self, gravity=None, thrust=None, antiwindup=None):
         self.gravity = gravity or Gravity()
         self.thrust = thrust or Thrust()
+        self.antiwindup = antiwindup or ANTIWINDUP
+        aw = dict(antiwindup=self.antiwindup, kb=AW_KB)
         # Yatay hız -> eğim açısı PID'leri (çıkış MAX_TILT ile sınırlı)
-        self.vx_pid = PID(VEL_KP, VEL_KI, VEL_KD, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU)
-        self.vy_pid = PID(VEL_KP, VEL_KI, VEL_KD, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU)
+        self.vx_pid = PID(VEL_KP, VEL_KI, VEL_KD, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU, **aw)
+        self.vy_pid = PID(VEL_KP, VEL_KI, VEL_KD, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU, **aw)
         # İrtifa -> gaz düzeltmesi PID'i
-        self.alt_pid = PID(ALT_KP, ALT_KI, ALT_KD, out_limit=0.45, integral_limit=2.0, deriv_tau=PID_DERIV_TAU)
+        self.alt_pid = PID(ALT_KP, ALT_KI, ALT_KD, out_limit=0.45, integral_limit=2.0, deriv_tau=PID_DERIV_TAU, **aw)
         # Bozucu etkiler: türbülans + sensör gürültüsü (gerçekçi hover titremesi)
         self.wind = Wind(WIND_ACCEL, WIND_TAU)
         self.rng = np.random.default_rng(7)

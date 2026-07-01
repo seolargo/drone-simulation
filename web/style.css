@@ -172,6 +172,12 @@ h2 { font-size: 1.7rem; margin: 0 0 8px; display: flex; align-items: center; gap
 }
 .outgallery figcaption { margin-top: 8px; font-size: .82rem; color: var(--muted); }
 
+.aw-section { margin-top: 26px; }
+.aw-head {
+  font-size: 1.05rem; color: #fff; margin: 0 0 14px; padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
 .empty-note { color: var(--muted); font-size: .9rem; text-align: center; padding: 30px 0; }
 .empty-note code, .muted code {
   background: var(--bg2); border: 1px solid var(--line); border-radius: 5px;

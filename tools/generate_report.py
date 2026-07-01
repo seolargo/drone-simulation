@@ -10,6 +10,7 @@ Konum kontrolü doğrudan pos_target / z_target adım komutlarıyla sürülür; 
 """
 
 import sys
+import argparse
 from pathlib import Path
 from datetime import datetime
 
@@ -19,12 +20,19 @@ sys.path.insert(0, str(ROOT))
 from entities import Drone            # noqa: E402  (pygame'e bağımlı değil)
 from analysis.telemetry import Telemetry  # noqa: E402
 from analysis import report           # noqa: E402
+from config import ANTIWINDUP         # noqa: E402
 
 DT = 1.0 / 60.0
 
 
 def main():
-    drone = Drone()
+    ap = argparse.ArgumentParser(description="Scriptli senaryodan web çıktıları üret")
+    ap.add_argument("--antiwindup", choices=["none", "clamp", "backcalc"],
+                    default=ANTIWINDUP,
+                    help="integral anti-windup yöntemi (varsayılan: %(default)s)")
+    args = ap.parse_args()
+
+    drone = Drone(antiwindup=args.antiwindup)
     tel = Telemetry()
     t = 0.0
 
@@ -51,7 +59,8 @@ def main():
 
     out = ROOT / "web" / "outputs"
     when = datetime.now().strftime("%Y-%m-%d %H:%M")
-    ok = report.generate(tel, out, source="scriptli senaryo", when=when)
+    src = f"scriptli senaryo · anti-windup: {args.antiwindup}"
+    ok = report.generate(tel, out, source=src, when=when)
     print(("OK, " + str(len(tel)) + " örnek -> ") if ok else "yetersiz veri -> ", out)
 
 

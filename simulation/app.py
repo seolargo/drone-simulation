@@ -18,14 +18,13 @@ OUTPUTS_DIR = Path(__file__).resolve().parents[1] / "web" / "outputs"
 
 
 class App:
-    def __init__(self):
+    def __init__(self, antiwindup=None):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Simülasyon — 3B drone (PID otopilot)")
+        self.drone = Drone(antiwindup=antiwindup)
+        pygame.display.set_caption(f"Simülasyon — 3B drone (PID · anti-windup: {self.drone.antiwindup})")
         self.clock = pygame.time.Clock()
         self.renderer = Renderer(self.screen)
-
-        self.drone = Drone()
         self.paused = False
         self.running = True
 
@@ -69,7 +68,8 @@ class App:
         # Bu oturumun telemetrisinden web çıktılarını üret
         try:
             when = datetime.now().strftime("%Y-%m-%d %H:%M")
-            report.generate(self.telemetry, OUTPUTS_DIR, source="canlı oturum", when=when)
+            src = f"canlı oturum · anti-windup: {self.drone.antiwindup}"
+            report.generate(self.telemetry, OUTPUTS_DIR, source=src, when=when)
         except Exception:
             pass
 

@@ -44,6 +44,10 @@ ALT_KD = 0.16
 
 PID_DERIV_TAU = 0.06     # PID türev alçak-geçiren zaman sabiti (s) — gürültüyü yumuşatır
 
+# Anti-windup (integral sarma önleme) — main.py --antiwindup ile değişir
+ANTIWINDUP = "backcalc"  # "none" | "clamp" (koşullu integrasyon) | "backcalc" (geri-hesaplama)
+AW_KB = 3.0              # back-calculation izleme kazancı (1/Tt)
+
 # Bozucu etkiler (gerçekçilik) — PID'in duruşta sürekli düzeltme yapmasını sağlar
 WIND_ACCEL = 0.8         # türbülans ivmesi (birim/s^2, kararlı-hal std)
 WIND_TAU = 0.45          # gust korelasyon süresi (s) — gust'ların değişim hızı

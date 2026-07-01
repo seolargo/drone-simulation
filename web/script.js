@@ -18,6 +18,8 @@ tabs.forEach((btn) => {
 (function renderOutputs() {
   const data = window.SIM_OUTPUTS;
   const gallery = document.getElementById("outgallery");
+  const awSection = document.getElementById("awsection");
+  const awGallery = document.getElementById("awgallery");
   const empty = document.getElementById("outempty");
   const meta = document.getElementById("runmeta");
   if (!data || !Array.isArray(data.charts) || !data.charts.length) return; // placeholder kalır
@@ -26,16 +28,29 @@ tabs.forEach((btn) => {
   meta.textContent =
     `Kaynak: ${data.source} · ${data.generatedAt} · süre ${data.durationSec}s · ${data.samples} örnek`;
 
-  gallery.innerHTML = "";
-  data.charts.forEach((c) => {
-    const fig = document.createElement("figure");
-    const h = document.createElement("h4");
-    h.textContent = c.title;
-    const img = document.createElement("img");
-    img.src = "outputs/" + c.file;
-    img.alt = c.title;
-    img.loading = "lazy";
-    fig.append(h, img);
-    gallery.appendChild(fig);
-  });
+  const fill = (container, charts) => {
+    container.innerHTML = "";
+    charts.forEach((c) => {
+      const fig = document.createElement("figure");
+      const h = document.createElement("h4");
+      h.textContent = c.title;
+      const img = document.createElement("img");
+      img.src = "outputs/" + c.file;
+      img.alt = c.title;
+      img.loading = "lazy";
+      fig.append(h, img);
+      container.appendChild(fig);
+    });
+  };
+
+  const aw = data.charts.filter((c) => c.group === "antiwindup");
+  const main = data.charts.filter((c) => c.group !== "antiwindup");
+
+  fill(gallery, main);
+  if (aw.length) {
+    fill(awGallery, aw);
+    awSection.style.display = "";
+  } else {
+    awSection.style.display = "none";
+  }
 })();

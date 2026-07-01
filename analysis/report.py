@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 from .svgchart import line_chart
+from . import awdemo
 
 
 def _series(t, v, label, color, dashed=False):
@@ -25,9 +26,12 @@ def generate(tel, out_dir, source="", when=""):
     t = tel.t
     charts = []
 
-    def write(name, svg, title):
+    def write(name, svg, title, group=None):
         (out / name).write_text(svg, encoding="utf-8")
-        charts.append({"file": name, "title": title})
+        entry = {"file": name, "title": title}
+        if group:
+            entry["group"] = group
+        charts.append(entry)
 
     # 1) Position tracking
     write("konum.svg", line_chart("Position tracking", "t (s)", "birim", [
@@ -63,6 +67,30 @@ def generate(tel, out_dir, source="", when=""):
         _series(t, tel.z, "z", "#6fa8e6"),
         _series(t, thr, "gaz % (olcekli)", "#e0685f", dashed=True),
     ]), "Altitude & throttle")
+
+    # 5) Control input u(t) = Kp*e + Ki*∫e + Kd*de/dt  (x ekseni PID çıkışı)
+    write("kontrol.svg", line_chart("Control input  u(t) = Kp*e + Ki*Ie + Kd*de/dt", "t (s)", "u (derece)", [
+        _series(t, tel.u, "u (toplam)", "#6fa8e6"),
+        _series(t, tel.up, "P", "#f0b446"),
+        _series(t, tel.ui, "I", "#8ad0a0"),
+        _series(t, tel.ud, "D", "#e0685f"),
+    ]), "Control input u(t)")
+
+    # 6-7) Anti-windup karşılaştırması (aynı PID sınıfı, doygun sistemde)
+    tn, xn, in_ = awdemo.run("none")
+    tc, xc, ic = awdemo.run("clamp")
+    tb, xb, ib = awdemo.run("backcalc")
+    write("aw_output.svg", line_chart("Anti-windup - system output x(t)", "t (s)", "x", [
+        _series(tn, [awdemo.REF] * len(tn), "target", "#8a93ac", dashed=True),
+        _series(tn, xn, "no anti-windup", "#e0685f"),
+        _series(tc, xc, "clamp", "#f0b446"),
+        _series(tb, xb, "back-calculation", "#8ad0a0"),
+    ]), "Anti-windup: system output", group="antiwindup")
+    write("aw_integral.svg", line_chart("Anti-windup - integral term", "t (s)", "I", [
+        _series(tn, in_, "no anti-windup", "#e0685f"),
+        _series(tc, ic, "clamp", "#f0b446"),
+        _series(tb, ib, "back-calculation", "#8ad0a0"),
+    ]), "Anti-windup: integral term", group="antiwindup")
 
     manifest = {
         "generatedAt": when,
