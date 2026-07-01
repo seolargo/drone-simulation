@@ -18,11 +18,11 @@ OUTPUTS_DIR = Path(__file__).resolve().parents[1] / "web" / "outputs"
 
 
 class App:
-    def __init__(self, antiwindup=None):
+    def __init__(self, antiwindup=None, frame=None):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.drone = Drone(antiwindup=antiwindup)
-        pygame.display.set_caption(f"Simülasyon — 3B drone (PID · anti-windup: {self.drone.antiwindup})")
+        self.drone = Drone(antiwindup=antiwindup, frame=frame)
+        pygame.display.set_caption(f"Simülasyon — 3B drone ({self.drone.frame.upper()} · anti-windup: {self.drone.antiwindup})")
         self.clock = pygame.time.Clock()
         self.renderer = Renderer(self.screen)
         self.paused = False

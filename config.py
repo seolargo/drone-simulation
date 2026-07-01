@@ -75,6 +75,7 @@ SENSOR_VEL_NOISE = 0.05  # hız ölçüm gürültüsü (birim/s, std) — ince t
 SENSOR_POS_NOISE = 0.012 # konum ölçüm gürültüsü (birim, std)
 
 # Drone
+FRAME = "x"              # gövde düzeni: "x" (köşegen kollar) | "plus" (eksen hizalı kollar)
 DRONE_ARM = 0.7          # kol uzunluğu (merkezden pervaneye)
 DRONE_ROTOR_R = 0.32     # pervane yarıçapı
 DRONE_START_Z = 5.0      # başlangıç yüksekliği (oyun alanı içinde)

@@ -123,9 +123,20 @@ h2 { font-size: 1.7rem; margin: 0 0 8px; display: flex; align-items: center; gap
 
 /* Roll/Pitch/Yaw diyagramları */
 .axisgrid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px; margin-top: 24px;
 }
+.axisgrid .wide { grid-column: 1 / -1; }
+@media (max-width: 760px) { .axisgrid { grid-template-columns: 1fr; } }
+
+.frame-head {
+  font-size: 1.05rem; color: #fff; margin: 30px 0 6px; padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.framegrid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 14px;
+}
+@media (max-width: 760px) { .framegrid { grid-template-columns: 1fr; } }
 .axiscard {
   background: var(--panel); border: 1px solid var(--line);
   border-radius: 14px; padding: 16px;

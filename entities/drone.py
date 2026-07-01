@@ -15,7 +15,7 @@ yerde askıda tutar. İrtifa PID'i, eğilince düşen dikey itkiyi telafi eder.
 import numpy as np
 
 from config import (
-    DRONE_ARM, DRONE_ROTOR_R, DRONE_START_Z, ROTOR_SPIN, BOUND_XY, CEIL_Z,
+    FRAME, DRONE_ARM, DRONE_ROTOR_R, DRONE_START_Z, ROTOR_SPIN, BOUND_XY, CEIL_Z,
     MAX_TILT, YAW_RATE, CLIMB_RATE, HOVER_THROTTLE, CMD_SPEED, POS_KP,
     VEL_KP, VEL_KI, VEL_KD, ALT_KP, ALT_KI, ALT_KD, PID_DERIV_TAU,
     WIND_ACCEL, WIND_TAU, SENSOR_VEL_NOISE, SENSOR_POS_NOISE,
@@ -27,14 +27,17 @@ from physics import (
     air_density, RHO0, PID, Wind, semi_implicit_euler,
 )
 
-# X-konfigürasyonu: dört kol köşegen yönlerde (gövde frame'i)
-_ARM_DIRS = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+# Gövde düzeni: X (köşegen kollar) veya + (eksen hizalı kollar)
+_ARM_DIRS_X = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+_ARM_DIRS_PLUS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
 
 class Drone:
-    def __init__(self, gravity=None, thrust=None, antiwindup=None, autotune=None):
+    def __init__(self, gravity=None, thrust=None, antiwindup=None, autotune=None, frame=None):
         self.gravity = gravity or Gravity()
         self.thrust = thrust or Thrust()
+        self.frame = frame or FRAME
+        self._arm_dirs = _ARM_DIRS_X if self.frame == "x" else _ARM_DIRS_PLUS
         self.antiwindup = antiwindup or ANTIWINDUP
         aw = dict(antiwindup=self.antiwindup, kb=AW_KB)
 
@@ -212,7 +215,7 @@ class Drone:
 
         arms = []
         rotors = []
-        for dx, dy in _ARM_DIRS:
+        for dx, dy in self._arm_dirs:
             d = np.array([dx, dy, 0.0])
             tip = d / np.linalg.norm(d) * DRONE_ARM
             arms.append((tf((0, 0, 0)), tf(tip)))

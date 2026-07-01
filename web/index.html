@@ -188,7 +188,7 @@
       <div class="axisgrid">
 
         <!-- 1) Eksen referansı (3B) -->
-        <article class="axiscard">
+        <article class="axiscard wide">
           <h4>Eksenler (3B)</h4>
           <svg viewBox="0 0 320 250" role="img" aria-label="X Y Z eksen referansı">
             <!-- eksenler -->
@@ -219,15 +219,54 @@
             <text x="20"  y="216" fill="#8a93ac" font-size="11">ileri</text>
           </svg>
           <ul class="axislegend">
-            <li><span class="k" style="background:#f0b446"></span> <b>Roll</b> → Y ekseni (yana yatış)</li>
-            <li><span class="k" style="background:#f0b446"></span> <b>Pitch</b> → X ekseni (burun yukarı/aşağı)</li>
-            <li><span class="k" style="background:#f0b446"></span> <b>Yaw</b> → Z ekseni (burun yönü)</li>
+            <li><span class="k" style="background:#f0b446"></span> <b>Roll</b> → yana yatış, sağa/sola (Y ekseni)</li>
+            <li><span class="k" style="background:#f0b446"></span> <b>Pitch</b> → öne-arkaya (X ekseni)</li>
+            <li><span class="k" style="background:#f0b446"></span> <b>Yaw</b> → kendi ekseninde dönüş (Z ekseni)</li>
           </ul>
         </article>
 
         <!-- 2) Pitch -->
         <article class="axiscard">
-          <h4>Pitch — X ekseni etrafında</h4>
+          <h4>Roll (yana yatış)</h4>
+          <svg viewBox="0 0 320 250" role="img" aria-label="Roll açısı diyagramı">
+            <g stroke="#8a93ac" stroke-width="1.4">
+              <line x1="50" y1="140" x2="280" y2="140" />
+              <line x1="160" y1="220" x2="160" y2="45" />
+            </g>
+            <polygon points="290,140 277,135 277,145" fill="#8a93ac" />
+            <polygon points="160,40 155,52 165,52" fill="#8a93ac" />
+            <text x="262" y="158" fill="#c8cddc" font-size="13" font-family="Menlo,monospace">X</text>
+            <text x="168" y="52"  fill="#c8cddc" font-size="13" font-family="Menlo,monospace">Z</text>
+            <!-- seviye (hayalet) -->
+            <g transform="translate(160,140)" opacity="0.28">
+              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" />
+              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+            </g>
+            <!-- dönmüş (yana yatış, φ) -->
+            <g transform="rotate(18 160 140) translate(160,140)">
+              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" stroke="#86b4e8" stroke-width="1" />
+              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
+              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
+            </g>
+            <!-- açı yayı φ -->
+            <path d="M212,140 A52,52 0 0 1 209.5,156.1" fill="none" stroke="#f0b446" stroke-width="2" />
+            <text x="216" y="166" fill="#f0b446" font-size="13" font-family="Menlo,monospace">φ = 18°</text>
+            <!-- dönme ekseni Y -->
+            <circle cx="92" cy="206" r="7" fill="none" stroke="#8a93ac" stroke-width="1.4" />
+            <circle cx="92" cy="206" r="2" fill="#8a93ac" />
+            <text x="104" y="210" fill="#8a93ac" font-size="11">dönme ekseni: Y (⊙)</text>
+          </svg>
+          <p class="axisnote">Sağa/sola yatar; drone yana doğru süzülür.</p>
+        </article>
+
+        <!-- 3) Pitch -->
+        <article class="axiscard">
+          <h4>Pitch (öne-arkaya)</h4>
           <svg viewBox="0 0 320 250" role="img" aria-label="Pitch açısı diyagramı">
             <!-- düzlem eksenleri (Y yatay, Z dikey) -->
             <g stroke="#8a93ac" stroke-width="1.4">
@@ -266,48 +305,9 @@
           <p class="axisnote">Burun yukarı/aşağı eğilir; drone ileri-geri süzülür.</p>
         </article>
 
-        <!-- 3) Roll -->
-        <article class="axiscard">
-          <h4>Roll — Y ekseni etrafında</h4>
-          <svg viewBox="0 0 320 250" role="img" aria-label="Roll açısı diyagramı">
-            <g stroke="#8a93ac" stroke-width="1.4">
-              <line x1="50" y1="140" x2="280" y2="140" />
-              <line x1="160" y1="220" x2="160" y2="45" />
-            </g>
-            <polygon points="290,140 277,135 277,145" fill="#8a93ac" />
-            <polygon points="160,40 155,52 165,52" fill="#8a93ac" />
-            <text x="262" y="158" fill="#c8cddc" font-size="13" font-family="Menlo,monospace">X</text>
-            <text x="168" y="52"  fill="#c8cddc" font-size="13" font-family="Menlo,monospace">Z</text>
-            <!-- seviye (hayalet) -->
-            <g transform="translate(160,140)" opacity="0.28">
-              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" />
-              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
-              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
-              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
-              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
-            </g>
-            <!-- dönmüş (yana yatış, φ) -->
-            <g transform="rotate(18 160 140) translate(160,140)">
-              <rect x="-34" y="-5" width="68" height="10" rx="5" fill="#4682c8" stroke="#86b4e8" stroke-width="1" />
-              <line x1="-26" y1="-5" x2="-26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
-              <ellipse cx="-26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
-              <line x1="26" y1="-5" x2="26" y2="-13" stroke="#5a8fd0" stroke-width="2" />
-              <ellipse cx="26" cy="-14" rx="10" ry="3" fill="#aac8eb" />
-            </g>
-            <!-- açı yayı φ -->
-            <path d="M212,140 A52,52 0 0 1 209.5,156.1" fill="none" stroke="#f0b446" stroke-width="2" />
-            <text x="216" y="166" fill="#f0b446" font-size="13" font-family="Menlo,monospace">φ = 18°</text>
-            <!-- dönme ekseni Y -->
-            <circle cx="92" cy="206" r="7" fill="none" stroke="#8a93ac" stroke-width="1.4" />
-            <circle cx="92" cy="206" r="2" fill="#8a93ac" />
-            <text x="104" y="210" fill="#8a93ac" font-size="11">dönme ekseni: Y (⊙)</text>
-          </svg>
-          <p class="axisnote">Sağa/sola yatar; drone yana doğru süzülür.</p>
-        </article>
-
         <!-- 4) Yaw -->
         <article class="axiscard">
-          <h4>Yaw — Z ekseni etrafında</h4>
+          <h4>Yaw (dönüş)</h4>
           <svg viewBox="0 0 320 250" role="img" aria-label="Yaw açısı diyagramı">
             <!-- X yatay (sağ), Y dikey (ileri = yukarı) -->
             <g stroke="#8a93ac" stroke-width="1.4">
@@ -346,6 +346,79 @@
             <text x="104" y="214" fill="#8a93ac" font-size="11">dönme ekseni: Z (⊙)</text>
           </svg>
           <p class="axisnote">Burun yönü döner; drone bulunduğu yerde kendi etrafında döner.</p>
+        </article>
+
+      </div>
+
+      <h3 class="frame-head">Gövde düzeni — X ve +</h3>
+      <p class="muted">Quadcopter iki şekilde durabilir. Komşu pervaneler ters yönde
+      döner (↻ / ↺) → hover'da net yaw torku sıfır. Üstten görünüm; ok = ileri (+y).</p>
+      <div class="framegrid">
+
+        <article class="axiscard">
+          <h4>X düzeni (köşegen) — varsayılan</h4>
+          <svg viewBox="0 0 220 200" role="img" aria-label="X düzeni">
+            <line x1="110" y1="24" x2="110" y2="176" stroke="#2a3450" />
+            <line x1="34" y1="100" x2="186" y2="100" stroke="#2a3450" />
+            <text x="150" y="118" fill="#8a93ac" font-size="10">+x</text>
+            <g stroke="#5a8fd0" stroke-width="4" stroke-linecap="round">
+              <line x1="110" y1="100" x2="150" y2="60" />
+              <line x1="110" y1="100" x2="150" y2="140" />
+              <line x1="110" y1="100" x2="70" y2="60" />
+              <line x1="110" y1="100" x2="70" y2="140" />
+            </g>
+            <line x1="110" y1="88" x2="110" y2="46" stroke="#f0b446" stroke-width="2.5" />
+            <polygon points="110,40 105,50 115,50" fill="#f0b446" />
+            <g font-family="Menlo,monospace" text-anchor="middle">
+              <circle cx="150" cy="60" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="150" y="59" fill="#fff" font-size="13" font-weight="bold">1</text>
+              <text x="150" y="73" fill="#eef2fa" font-size="12">↻</text>
+              <circle cx="150" cy="140" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="150" y="139" fill="#fff" font-size="13" font-weight="bold">2</text>
+              <text x="150" y="153" fill="#eef2fa" font-size="12">↺</text>
+              <circle cx="70" cy="60" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="70" y="59" fill="#fff" font-size="13" font-weight="bold">3</text>
+              <text x="70" y="73" fill="#eef2fa" font-size="12">↺</text>
+              <circle cx="70" cy="140" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="70" y="139" fill="#fff" font-size="13" font-weight="bold">4</text>
+              <text x="70" y="153" fill="#eef2fa" font-size="12">↻</text>
+            </g>
+            <circle cx="110" cy="100" r="9" fill="#4682c8" />
+          </svg>
+          <p class="axisnote">Kollar köşegende; burun iki ön rotor arasında.</p>
+        </article>
+
+        <article class="axiscard">
+          <h4>+ düzeni (eksen hizalı)</h4>
+          <svg viewBox="0 0 220 200" role="img" aria-label="Artı düzeni">
+            <line x1="110" y1="24" x2="110" y2="176" stroke="#2a3450" />
+            <line x1="34" y1="100" x2="186" y2="100" stroke="#2a3450" />
+            <text x="150" y="118" fill="#8a93ac" font-size="10">+x</text>
+            <g stroke="#5a8fd0" stroke-width="4" stroke-linecap="round">
+              <line x1="110" y1="100" x2="170" y2="100" />
+              <line x1="110" y1="100" x2="110" y2="52" />
+              <line x1="110" y1="100" x2="50" y2="100" />
+              <line x1="110" y1="100" x2="110" y2="148" />
+            </g>
+            <line x1="110" y1="88" x2="110" y2="74" stroke="#f0b446" stroke-width="2.5" />
+            <polygon points="110,68 105,78 115,78" fill="#f0b446" />
+            <g font-family="Menlo,monospace" text-anchor="middle">
+              <circle cx="170" cy="100" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="170" y="99" fill="#fff" font-size="13" font-weight="bold">1</text>
+              <text x="170" y="113" fill="#eef2fa" font-size="12">↻</text>
+              <circle cx="110" cy="52" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="110" y="51" fill="#fff" font-size="13" font-weight="bold">2</text>
+              <text x="110" y="65" fill="#eef2fa" font-size="12">↺</text>
+              <circle cx="50" cy="100" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="50" y="99" fill="#fff" font-size="13" font-weight="bold">3</text>
+              <text x="50" y="113" fill="#eef2fa" font-size="12">↻</text>
+              <circle cx="110" cy="148" r="18" fill="#4682c8" fill-opacity=".85" stroke="#aac8eb" />
+              <text x="110" y="147" fill="#fff" font-size="13" font-weight="bold">4</text>
+              <text x="110" y="161" fill="#eef2fa" font-size="12">↺</text>
+            </g>
+            <circle cx="110" cy="100" r="9" fill="#4682c8" />
+          </svg>
+          <p class="axisnote">Kollar eksenlerle hizalı; 2 numaralı rotor tam ileride.</p>
         </article>
 
       </div>

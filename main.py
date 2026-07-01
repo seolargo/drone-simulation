@@ -23,7 +23,7 @@ Kod yapısı:
 import argparse
 
 from simulation import App
-from config import ANTIWINDUP
+from config import ANTIWINDUP, FRAME
 
 
 def main():
@@ -31,8 +31,10 @@ def main():
     ap.add_argument("--antiwindup", choices=["none", "clamp", "backcalc"],
                     default=ANTIWINDUP,
                     help="integral anti-windup yöntemi (varsayılan: %(default)s)")
+    ap.add_argument("--frame", choices=["x", "plus"], default=FRAME,
+                    help="gövde düzeni: x (köşegen) | plus (eksen hizalı) (varsayılan: %(default)s)")
     args = ap.parse_args()
-    App(antiwindup=args.antiwindup).run()
+    App(antiwindup=args.antiwindup, frame=args.frame).run()
 
 
 if __name__ == "__main__":
