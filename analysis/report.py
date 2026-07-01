@@ -8,7 +8,7 @@ okuyup gösterir. Her koşuda üzerine yazılır (yeniden generate).
 import json
 from pathlib import Path
 
-from .svgchart import line_chart
+from .svgchart import line_chart, relay_chart
 from . import awdemo
 
 
@@ -16,7 +16,7 @@ def _series(t, v, label, color, dashed=False):
     return {"label": label, "color": color, "pts": list(zip(t, v)), "dashed": dashed}
 
 
-def generate(tel, out_dir, source="", when=""):
+def generate(tel, out_dir, source="", when="", tune=None):
     """Yeterli örnek varsa grafikleri üretir; True/False döner."""
     if len(tel) < 2:
         return False
@@ -92,11 +92,28 @@ def generate(tel, out_dir, source="", when=""):
         _series(tb, ib, "back-calculation", "#8ad0a0"),
     ]), "Anti-windup: integral term", group="antiwindup")
 
+    # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
+    tune_meta = None
+    if tune and tune.get("vx"):
+        t_end = tune["t"][-1]
+        idx = [i for i, tt in enumerate(tune["t"]) if tt >= t_end - 2.2]
+        t0 = tune["t"][idx[0]]
+        tw = [tune["t"][i] - t0 for i in idx]
+        vw = [tune["vx"][i] for i in idx]
+        rw = [tune["relay"][i] for i in idx]
+        write("autotune.svg",
+              relay_chart(tw, vw, rw, a=tune["amplitude"], Tu=tune["Tu"],
+                          Ku=tune["Ku"], d=tune["d"]),
+              "Relay feedback experiment", group="autotune")
+        tune_meta = {k: round(tune[k], 4) for k in ("Ku", "Tu", "kp", "ki", "kd")}
+        tune_meta["rule"] = tune["rule"]
+
     manifest = {
         "generatedAt": when,
         "durationSec": round(t[-1] - t[0], 1),
         "samples": len(tel),
         "source": source,
+        "tune": tune_meta,
         "charts": charts,
     }
     (out / "manifest.js").write_text(

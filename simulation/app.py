@@ -69,7 +69,8 @@ class App:
         try:
             when = datetime.now().strftime("%Y-%m-%d %H:%M")
             src = f"canlı oturum · anti-windup: {self.drone.antiwindup}"
-            report.generate(self.telemetry, OUTPUTS_DIR, source=src, when=when)
+            report.generate(self.telemetry, OUTPUTS_DIR, source=src, when=when,
+                            tune=self.drone.tune_info)
         except Exception:
             pass
 

@@ -19,23 +19,35 @@ from config import (
     MAX_TILT, YAW_RATE, CLIMB_RATE, HOVER_THROTTLE, CMD_SPEED, POS_KP,
     VEL_KP, VEL_KI, VEL_KD, ALT_KP, ALT_KI, ALT_KD, PID_DERIV_TAU,
     WIND_ACCEL, WIND_TAU, SENSOR_VEL_NOISE, SENSOR_POS_NOISE,
-    ANTIWINDUP, AW_KB,
+    ANTIWINDUP, AW_KB, ATT_WN, ATT_ZETA, AUTOTUNE,
 )
-from physics import Gravity, Thrust, rotation_matrix, PID, Wind, semi_implicit_euler
+from physics import (
+    Gravity, Thrust, rotation_matrix, attitude_step, PID, Wind, semi_implicit_euler,
+)
 
 # X-konfigürasyonu: dört kol köşegen yönlerde (gövde frame'i)
 _ARM_DIRS = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
 
 
 class Drone:
-    def __init__(self, gravity=None, thrust=None, antiwindup=None):
+    def __init__(self, gravity=None, thrust=None, antiwindup=None, autotune=None):
         self.gravity = gravity or Gravity()
         self.thrust = thrust or Thrust()
         self.antiwindup = antiwindup or ANTIWINDUP
         aw = dict(antiwindup=self.antiwindup, kb=AW_KB)
+
+        # Yatay hız kazançları: relay feedback ile otomatik ayar (varsayılan) ya da elle
+        self.autotune = AUTOTUNE if autotune is None else autotune
+        self.tune_info = None
+        if self.autotune:
+            from analysis.autotune import relay_tune
+            vkp, vki, vkd, self.tune_info = relay_tune()
+        else:
+            vkp, vki, vkd = VEL_KP, VEL_KI, VEL_KD
+
         # Yatay hız -> eğim açısı PID'leri (çıkış MAX_TILT ile sınırlı)
-        self.vx_pid = PID(VEL_KP, VEL_KI, VEL_KD, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU, **aw)
-        self.vy_pid = PID(VEL_KP, VEL_KI, VEL_KD, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU, **aw)
+        self.vx_pid = PID(vkp, vki, vkd, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU, **aw)
+        self.vy_pid = PID(vkp, vki, vkd, out_limit=MAX_TILT, integral_limit=3.0, deriv_tau=PID_DERIV_TAU, **aw)
         # İrtifa -> gaz düzeltmesi PID'i
         self.alt_pid = PID(ALT_KP, ALT_KI, ALT_KD, out_limit=0.45, integral_limit=2.0, deriv_tau=PID_DERIV_TAU, **aw)
         # Bozucu etkiler: türbülans + sensör gürültüsü (gerçekçi hover titremesi)
@@ -46,8 +58,12 @@ class Drone:
     def reset(self):
         self.pos = np.array([0.0, 0.0, DRONE_START_Z], dtype=float)
         self.vel = np.zeros(3, dtype=float)
-        self.roll = 0.0
+        self.roll = 0.0          # gerçek eğim (2. mertebe dinamikle komuta ulaşır)
         self.pitch = 0.0
+        self.roll_rate = 0.0
+        self.pitch_rate = 0.0
+        self.roll_cmd = 0.0      # PID'in komut ettiği eğim
+        self.pitch_cmd = 0.0
         self.yaw = 0.0
         self.throttle = HOVER_THROTTLE
         self.z_target = DRONE_START_Z
@@ -94,10 +110,14 @@ class Drone:
             err = self.pos_target - np.array([x_meas, y_meas])
             vel_sp = np.clip(POS_KP * err, -CMD_SPEED, CMD_SPEED)
 
-        # --- İç yatay hız PID -> eğim açısı (türev hız ölçümü üzerinden) ---
+        # --- İç yatay hız PID -> eğim KOMUTU (türev hız ölçümü üzerinden) ---
         # roll(+) gövde-yukarıyı +x'e yatırır; pitch(-) +y'ye yatırır.
-        self.roll = self.vx_pid.update(vel_sp[0] - vx_meas, dt, measurement=vx_meas)
-        self.pitch = -self.vy_pid.update(vel_sp[1] - vy_meas, dt, measurement=vy_meas)
+        self.roll_cmd = self.vx_pid.update(vel_sp[0] - vx_meas, dt, measurement=vx_meas)
+        self.pitch_cmd = -self.vy_pid.update(vel_sp[1] - vy_meas, dt, measurement=vy_meas)
+
+        # --- Eğim iç dinamiği: gerçek eğim komuta 2. mertebe ile ulaşır ---
+        self.roll, self.roll_rate = attitude_step(self.roll, self.roll_rate, self.roll_cmd, ATT_WN, ATT_ZETA, dt)
+        self.pitch, self.pitch_rate = attitude_step(self.pitch, self.pitch_rate, self.pitch_cmd, ATT_WN, ATT_ZETA, dt)
 
         # --- İrtifa PID -> gaz (hover ileri beslemesi + düzeltme) ---
         self.throttle = float(np.clip(

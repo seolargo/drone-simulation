@@ -43,10 +43,25 @@ tabs.forEach((btn) => {
     });
   };
 
+  const at = data.charts.filter((c) => c.group === "autotune");
   const aw = data.charts.filter((c) => c.group === "antiwindup");
-  const main = data.charts.filter((c) => c.group !== "antiwindup");
+  const main = data.charts.filter((c) => !c.group);
+
+  // Auto-tune bölümü + Ku/Tu/gain bilgisi
+  const atSection = document.getElementById("autotunesection");
+  const tuneInfo = document.getElementById("tuneinfo");
+  if (data.tune && at.length) {
+    const t = data.tune;
+    tuneInfo.textContent =
+      `Relay deneyi → Ku=${t.Ku}, Tu=${t.Tu}s  ⇒  Kp=${t.kp}, Ki=${t.ki}, Kd=${t.kd}  (${t.rule})`;
+    fill(document.getElementById("autotunegallery"), at);
+    atSection.style.display = "";
+  } else {
+    atSection.style.display = "none";
+  }
 
   fill(gallery, main);
+
   if (aw.length) {
     fill(awGallery, aw);
     awSection.style.display = "";

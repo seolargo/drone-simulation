@@ -23,6 +23,10 @@ THROTTLE_RATE = 0.9      # gaz seviyesinin saniyedeki değişimi (W/S)
 MAX_TILT = math.radians(18)     # PID'in komut edebileceği maksimum roll/pitch açısı (yumuşak)
 YAW_RATE = math.radians(75)     # yaw dönüş hızı (rad/s, manuel)
 
+# Eğim iç dinamiği (2. mertebe) — komuta sonlu hızda ulaşır (gerçekçilik + relay auto-tune için gerekli)
+ATT_WN = 12.0                   # doğal frekans (rad/s)
+ATT_ZETA = 0.7                  # sönüm oranı
+
 # Otomatik uçuş kontrolü (PID)
 CMD_SPEED = 3.0          # ok tuşlarının komut verdiği maksimum yatay hız (birim/s)
 CLIMB_RATE = 2.0         # W/S ile irtifa hedefinin değişim hızı (birim/s)
@@ -32,8 +36,10 @@ HOVER_THROTTLE = GRAVITY / THRUST_MAX   # asılı kalma gazı (ileri besleme)
 # (komut yokken devreye girer; drone'u bir noktada tutar)
 POS_KP = 1.6
 
-# Yatay hız PID: hata (hedef hız - gerçek hız) -> eğim açısı
-# Yumuşak tepki: düşük KP (anında doyma yok), KD damping, düşük KI
+# Yatay hız PID kazançları.
+# AUTOTUNE=True iken bunlar yok sayılır ve relay feedback ile otomatik hesaplanır;
+# False iken bu elle-ayarlı değerler kullanılır.
+AUTOTUNE = True
 VEL_KP = 0.09
 VEL_KI = 0.02
 VEL_KD = 0.03

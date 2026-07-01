@@ -60,7 +60,7 @@ def main():
     out = ROOT / "web" / "outputs"
     when = datetime.now().strftime("%Y-%m-%d %H:%M")
     src = f"scriptli senaryo · anti-windup: {args.antiwindup}"
-    ok = report.generate(tel, out, source=src, when=when)
+    ok = report.generate(tel, out, source=src, when=when, tune=drone.tune_info)
     print(("OK, " + str(len(tel)) + " örnek -> ") if ok else "yetersiz veri -> ", out)
 
 
