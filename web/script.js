@@ -27,6 +27,7 @@ const GROUP_SECTIONS = [
   ["tof", "ToF / Lidar mesafe sensörü"],
   ["ultrasonic", "Ultrasonik mesafe sensörü (HC-SR04)"],
   ["imu", "IMU (MPU-6050) — ivmeölçer & jiroskop"],
+  ["fusion", "Sensör füzyonu — complementary filter"],
   ["mag", "Manyetometre — hard/soft iron kalibrasyonu"],
   ["comm", "Telsiz haberleşme (APC-220)"],
   ["antiwindup", "Anti-windup karşılaştırması"],

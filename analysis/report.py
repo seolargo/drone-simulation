@@ -23,6 +23,7 @@ from . import opticalflow
 from . import tof as tofmod
 from . import geodetic as geo
 from . import rotcheck
+from . import compfilter
 
 
 def _series(t, v, label, color, dashed=False):
@@ -234,6 +235,15 @@ def generate(tel, out_dir, source="", when="", tune=None):
     write("geo.svg", xy_chart("GPS trajectory (geodetic)", "boylam (derece)", "enlem (derece)", [
         {"label": "ucus yorungesi", "color": "#f0b446", "pts": list(zip(lons, lats))},
     ]), "GPS geodetic (lat/lon)", group="geo")
+
+    # 26) Complementary filter — jiroskop + ivmeölçer füzyonu (pitch)
+    c_true, c_gyro, c_acc, c_comp = compfilter.run(tel.pitch, dt_s)
+    write("compfilter.svg", line_chart("Complementary filter (pitch)", "t (s)", "aci (derece)", [
+        _series(t, c_true, "gercek", "#8a93ac", dashed=True),
+        _series(t, c_gyro, "sadece jiroskop (drift)", "#f0b446"),
+        _series(t, c_acc, "sadece ivmeolcer (gurultu)", "#e0685f"),
+        _series(t, c_comp, "complementary (fuzyon)", "#6fa8e6"),
+    ]), "Complementary filter", group="fusion")
 
     # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
     tune_meta = None
