@@ -13,6 +13,7 @@ from physics import air_density
 from config import THRUST_COEF
 from . import awdemo
 from . import magnetometer
+from . import motor
 from . import ultrasonic
 from . import imu
 from . import comm
@@ -208,6 +209,15 @@ def generate(tel, out_dir, source="", when="", tune=None):
         _series(t, [THRUST_COEF * w * w for w in tel.w3], "T3", "#8ad0a0"),
         _series(t, [THRUST_COEF * w * w for w in tel.w4], "T4", "#e0685f"),
     ]), "Propeller thrust (T = k·ω²)", group="prop")
+
+    # 23) DC motor dinamiği — gerilim adımına back-EMF tepkisi
+    mt, mw, mi = motor.run()
+    wmax = max(mw) or 1.0
+    imax = max(mi) or 1.0
+    write("motor.svg", line_chart("DC motor step response (back-EMF)", "t (s)", "normalize", [
+        _series(mt, [w / wmax for w in mw], "ω (hiz)", "#6fa8e6"),
+        _series(mt, [i / imax for i in mi], "akim I", "#e0685f"),
+    ]), "DC motor (back-EMF)", group="motor")
 
     # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
     tune_meta = None

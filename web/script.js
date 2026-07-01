@@ -16,6 +16,7 @@ tabs.forEach((btn) => {
 
 // Gruplu bölümlerin sırası ve başlıkları
 const GROUP_SECTIONS = [
+  ["motor", "DC motor dinamiği — back-EMF"],
   ["prop", "Pervane — thrust (blade element, T = k·ω²)"],
   ["atmos", "Hava yoğunluğu — irtifayla değişim"],
   ["gps", "GPS alıcısı"],
