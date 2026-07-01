@@ -24,6 +24,7 @@ from . import tof as tofmod
 from . import geodetic as geo
 from . import rotcheck
 from . import compfilter
+from . import kalman
 
 
 def _series(t, v, label, color, dashed=False):
@@ -244,6 +245,21 @@ def generate(tel, out_dir, source="", when="", tune=None):
         _series(t, c_acc, "sadece ivmeolcer (gurultu)", "#e0685f"),
         _series(t, c_comp, "complementary (fuzyon)", "#6fa8e6"),
     ]), "Complementary filter", group="fusion")
+
+    # 27) Kalman filtresi — açı + jiroskop bias kestirimi
+    k_true, k_gyro, k_est, _ = kalman.run(tel.pitch, dt_s)
+    write("kalman.svg", line_chart("Kalman filter (pitch)", "t (s)", "aci (derece)", [
+        _series(t, k_true, "gercek", "#8a93ac", dashed=True),
+        _series(t, k_gyro, "sadece jiroskop (drift)", "#f0b446"),
+        _series(t, k_est, "Kalman kestirimi", "#6fa8e6"),
+    ]), "Kalman filter", group="kalman")
+
+    # 28) State-space: gövde-çerçevesi hızlar (u, v, w)
+    write("bodyvel.svg", line_chart("Body-frame velocity (u, v, w)", "t (s)", "hiz (m/s)", [
+        _series(t, tel.bu, "u", "#6fa8e6"),
+        _series(t, tel.bv, "v", "#f0b446"),
+        _series(t, tel.bw, "w", "#8ad0a0"),
+    ]), "Body-frame velocity (u,v,w)", group="state")
 
     # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
     tune_meta = None

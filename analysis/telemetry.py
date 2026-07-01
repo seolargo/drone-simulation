@@ -19,6 +19,8 @@ class Telemetry:
         # Fiziksel seviye: torklar (τφ,τθ,τψ) ve rotor hızları (ω1..ω4)
         self.tphi = []; self.ttheta = []; self.tpsi = []
         self.w1 = []; self.w2 = []; self.w3 = []; self.w4 = []
+        # Gövde çerçevesi hızlar (u, v, w)
+        self.bu = []; self.bv = []; self.bw = []
 
     def record(self, t, d):
         self.t.append(float(t))
@@ -41,6 +43,7 @@ class Telemetry:
         # Torklar ve rotor hızları
         self.tphi.append(d.torque[0]); self.ttheta.append(d.torque[1]); self.tpsi.append(d.torque[2])
         self.w1.append(d.rotor[0]); self.w2.append(d.rotor[1]); self.w3.append(d.rotor[2]); self.w4.append(d.rotor[3])
+        self.bu.append(float(d.vel_body[0])); self.bv.append(float(d.vel_body[1])); self.bw.append(float(d.vel_body[2]))
 
     def __len__(self):
         return len(self.t)

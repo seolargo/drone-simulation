@@ -23,8 +23,8 @@ from config import (
     MASS, I_XX, I_YY, I_ZZ, ARM_L, THRUST_COEF, DRAG_COEF, DRAG_LIN,
 )
 from physics import (
-    Gravity, Thrust, rotation_matrix, euler_step, air_density, RHO0,
-    PID, Wind, semi_implicit_euler,
+    Gravity, Thrust, rotation_matrix, euler_step, euler_kinematics,
+    air_density, RHO0, PID, Wind, semi_implicit_euler,
 )
 
 # X-konfigürasyonu: dört kol köşegen yönlerde (gövde frame'i)
@@ -59,7 +59,8 @@ class Drone:
 
     def reset(self):
         self.pos = np.array([0.0, 0.0, DRONE_START_Z], dtype=float)
-        self.vel = np.zeros(3, dtype=float)
+        self.vel = np.zeros(3, dtype=float)         # dünya çerçevesi hız
+        self.vel_body = np.zeros(3, dtype=float)    # gövde çerçevesi hız (u, v, w)
         self.roll = 0.0          # gerçek eğim (Euler dinamiğiyle torka tepki verir)
         self.pitch = 0.0
         self.yaw = 0.0
@@ -150,9 +151,11 @@ class Drone:
         # --- Euler dönme dinamiği: ω̇ = I⁻¹(τ - ω×Iω); açılar ω'dan entegre ---
         self.wx, self.wy, self.wz = euler_step(
             (self.wx, self.wy, self.wz), self.torque, (I_XX, I_YY, I_ZZ), dt)
-        self.roll += self.wx * dt
-        self.pitch += self.wy * dt
-        self.yaw += self.wz * dt
+        # Euler-açı kinematiği: [φ̇, θ̇, ψ̇] = T(φ,θ)·[p, q, r]
+        phid, thd, psid = euler_kinematics(self.roll, self.pitch, self.wx, self.wy, self.wz)
+        self.roll += phid * dt
+        self.pitch += thd * dt
+        self.yaw += psid * dt
 
         # --- İrtifa PID -> gaz (hover ileri beslemesi + düzeltme) ---
         self.throttle = float(np.clip(
@@ -172,6 +175,8 @@ class Drone:
                + self.wind.acceleration(dt)
                - (DRAG_LIN / MASS) * self.vel)
         self.pos, self.vel = semi_implicit_euler(self.pos, self.vel, acc, dt)
+        # Gövde çerçevesi hız (u, v, w) = R_n^b · v_dünya
+        self.vel_body = self.R.T @ self.vel
 
         # --- Sınırlar: drone ekran/oyun alanından çıkamaz ---
         if self.pos[2] <= 0.0:

@@ -28,6 +28,8 @@ const GROUP_SECTIONS = [
   ["ultrasonic", "Ultrasonik mesafe sensörü (HC-SR04)"],
   ["imu", "IMU (MPU-6050) — ivmeölçer & jiroskop"],
   ["fusion", "Sensör füzyonu — complementary filter"],
+  ["kalman", "Kalman filtresi — açı + bias kestirimi"],
+  ["state", "State-space — gövde-çerçevesi hız (u, v, w)"],
   ["mag", "Manyetometre — hard/soft iron kalibrasyonu"],
   ["comm", "Telsiz haberleşme (APC-220)"],
   ["antiwindup", "Anti-windup karşılaştırması"],
