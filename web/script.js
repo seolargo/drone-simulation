@@ -14,25 +14,27 @@ tabs.forEach((btn) => {
   });
 });
 
-// Gruplu bölümlerin sırası ve başlıkları
+// Tüm grafik grupları (sıra + İngilizce başlık)
 const GROUP_SECTIONS = [
-  ["motor", "DC motor dinamiği — back-EMF"],
-  ["prop", "Pervane — thrust (blade element, T = k·ω²)"],
-  ["atmos", "Hava yoğunluğu — irtifayla değişim"],
-  ["gps", "GPS alıcısı"],
-  ["geo", "GPS — geodetic (enlem/boylam) dönüşümü"],
-  ["rotcheck", "Rotation matrix — RRᵀ=I, det=1 doğrulaması"],
-  ["baro", "Barometre — basınçtan irtifa"],
-  ["flow", "Optik akış sensörü"],
-  ["tof", "ToF / Lidar mesafe sensörü"],
-  ["ultrasonic", "Ultrasonik mesafe sensörü (HC-SR04)"],
-  ["imu", "IMU (MPU-6050) — ivmeölçer & jiroskop"],
-  ["fusion", "Sensör füzyonu — complementary filter"],
-  ["kalman", "Kalman filtresi — açı + bias kestirimi"],
-  ["state", "State-space — gövde-çerçevesi hız (u, v, w)"],
-  ["mag", "Manyetometre — hard/soft iron kalibrasyonu"],
-  ["comm", "Telsiz haberleşme (APC-220)"],
-  ["antiwindup", "Anti-windup karşılaştırması"],
+  ["flight", "Flight telemetry"],
+  ["autotune", "Auto-tune (relay feedback)"],
+  ["antiwindup", "Anti-windup comparison"],
+  ["motor", "DC motor (back-EMF)"],
+  ["prop", "Propeller thrust"],
+  ["atmos", "Air density"],
+  ["state", "State-space (body velocity)"],
+  ["imu", "IMU (MPU-6050)"],
+  ["fusion", "Sensor fusion (complementary filter)"],
+  ["kalman", "Kalman filter"],
+  ["mag", "Magnetometer"],
+  ["gps", "GPS receiver"],
+  ["geo", "GPS geodetic (lat/lon)"],
+  ["baro", "Barometer"],
+  ["ultrasonic", "Ultrasonic (HC-SR04)"],
+  ["tof", "ToF / Lidar"],
+  ["flow", "Optical flow"],
+  ["comm", "Radio link (APC-220)"],
+  ["rotcheck", "Rotation matrix verification"],
 ];
 
 // Çıktı galerisi — outputs/manifest.js varsa (window.SIM_OUTPUTS) doldur
@@ -46,8 +48,7 @@ const GROUP_SECTIONS = [
   meta.textContent =
     `Kaynak: ${data.source} · ${data.generatedAt} · süre ${data.durationSec}s · ${data.samples} örnek`;
 
-  const fill = (container, charts) => {
-    container.innerHTML = "";
+  const buildFigures = (container, charts) => {
     charts.forEach((c) => {
       const fig = document.createElement("figure");
       const h = document.createElement("h4");
@@ -61,23 +62,6 @@ const GROUP_SECTIONS = [
     });
   };
 
-  // Auto-tune (özel: Ku/Tu/gain bilgi satırı)
-  const at = data.charts.filter((c) => c.group === "autotune");
-  const atSection = document.getElementById("autotunesection");
-  if (data.tune && at.length) {
-    const t = data.tune;
-    document.getElementById("tuneinfo").textContent =
-      `Relay deneyi → Ku=${t.Ku}, Tu=${t.Tu}s  ⇒  Kp=${t.kp}, Ki=${t.ki}, Kd=${t.kd}  (${t.rule})`;
-    fill(document.getElementById("autotunegallery"), at);
-    atSection.style.display = "";
-  } else {
-    atSection.style.display = "none";
-  }
-
-  // Ana uçuş grafikleri (grupsuz)
-  fill(document.getElementById("outgallery"), data.charts.filter((c) => !c.group));
-
-  // Gruplu bölümler (generic)
   const host = document.getElementById("groupsections");
   host.innerHTML = "";
   GROUP_SECTIONS.forEach(([g, heading]) => {
@@ -92,6 +76,6 @@ const GROUP_SECTIONS = [
     gal.className = "outgallery";
     sec.append(head, gal);
     host.appendChild(sec);
-    fill(gal, charts);
+    buildFigures(gal, charts);
   });
 })();

@@ -200,7 +200,6 @@ def relay_chart(t, vx, relay, a, Tu, Ku, d, width=640, height=310):
     # --- sağ panel: formül + değerler ---
     rx = px1 + 16
     lines = [
-        ("Ku = 4h / (π·a)", "#c8cddc", 13),
         (f"h  = {d_deg:.1f}°", "#8a93ac", 11),
         (f"a  = {a:.3f} m/s", "#8a93ac", 11),
         (f"Ku = {Ku:.2f}", "#f0b446", 13),
