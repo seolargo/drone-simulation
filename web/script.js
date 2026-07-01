@@ -14,12 +14,22 @@ tabs.forEach((btn) => {
   });
 });
 
+// Gruplu bölümlerin sırası ve başlıkları
+const GROUP_SECTIONS = [
+  ["gps", "GPS alıcısı"],
+  ["baro", "Barometre — basınçtan irtifa"],
+  ["flow", "Optik akış sensörü"],
+  ["tof", "ToF / Lidar mesafe sensörü"],
+  ["ultrasonic", "Ultrasonik mesafe sensörü (HC-SR04)"],
+  ["imu", "IMU (MPU-6050) — ivmeölçer & jiroskop"],
+  ["mag", "Manyetometre — hard/soft iron kalibrasyonu"],
+  ["comm", "Telsiz haberleşme (APC-220)"],
+  ["antiwindup", "Anti-windup karşılaştırması"],
+];
+
 // Çıktı galerisi — outputs/manifest.js varsa (window.SIM_OUTPUTS) doldur
 (function renderOutputs() {
   const data = window.SIM_OUTPUTS;
-  const gallery = document.getElementById("outgallery");
-  const awSection = document.getElementById("awsection");
-  const awGallery = document.getElementById("awgallery");
   const empty = document.getElementById("outempty");
   const meta = document.getElementById("runmeta");
   if (!data || !Array.isArray(data.charts) || !data.charts.length) return; // placeholder kalır
@@ -43,17 +53,12 @@ tabs.forEach((btn) => {
     });
   };
 
+  // Auto-tune (özel: Ku/Tu/gain bilgi satırı)
   const at = data.charts.filter((c) => c.group === "autotune");
-  const aw = data.charts.filter((c) => c.group === "antiwindup");
-  const mg = data.charts.filter((c) => c.group === "mag");
-  const main = data.charts.filter((c) => !c.group);
-
-  // Auto-tune bölümü + Ku/Tu/gain bilgisi
   const atSection = document.getElementById("autotunesection");
-  const tuneInfo = document.getElementById("tuneinfo");
   if (data.tune && at.length) {
     const t = data.tune;
-    tuneInfo.textContent =
+    document.getElementById("tuneinfo").textContent =
       `Relay deneyi → Ku=${t.Ku}, Tu=${t.Tu}s  ⇒  Kp=${t.kp}, Ki=${t.ki}, Kd=${t.kd}  (${t.rule})`;
     fill(document.getElementById("autotunegallery"), at);
     atSection.style.display = "";
@@ -61,23 +66,24 @@ tabs.forEach((btn) => {
     atSection.style.display = "none";
   }
 
-  fill(gallery, main);
+  // Ana uçuş grafikleri (grupsuz)
+  fill(document.getElementById("outgallery"), data.charts.filter((c) => !c.group));
 
-  // Manyetometre bölümü
-  const magSection = document.getElementById("magsection");
-  if (data.mag && mg.length) {
-    document.getElementById("maginfo").textContent =
-      `Kestirilen hard iron b=[${data.mag.b}]  ·  soft iron D=[${data.mag.D}]  ·  heading hatası: ham ~69° → kalibre ~3°`;
-    fill(document.getElementById("maggallery"), mg);
-    magSection.style.display = "";
-  } else {
-    magSection.style.display = "none";
-  }
-
-  if (aw.length) {
-    fill(awGallery, aw);
-    awSection.style.display = "";
-  } else {
-    awSection.style.display = "none";
-  }
+  // Gruplu bölümler (generic)
+  const host = document.getElementById("groupsections");
+  host.innerHTML = "";
+  GROUP_SECTIONS.forEach(([g, heading]) => {
+    const charts = data.charts.filter((c) => c.group === g);
+    if (!charts.length) return;
+    const sec = document.createElement("div");
+    sec.className = "aw-section";
+    const head = document.createElement("h3");
+    head.className = "aw-head";
+    head.textContent = heading;
+    const gal = document.createElement("div");
+    gal.className = "outgallery";
+    sec.append(head, gal);
+    host.appendChild(sec);
+    fill(gal, charts);
+  });
 })();

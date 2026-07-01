@@ -11,6 +11,13 @@ from pathlib import Path
 from .svgchart import line_chart, relay_chart, xy_chart
 from . import awdemo
 from . import magnetometer
+from . import ultrasonic
+from . import imu
+from . import comm
+from . import gps as gpsmod
+from . import barometer
+from . import opticalflow
+from . import tof as tofmod
 
 
 def _series(t, v, label, color, dashed=False):
@@ -120,6 +127,71 @@ def generate(tel, out_dir, source="", when="", tune=None):
         _series(mg["yaw_true"], mg["head_cal"], "kalibre", "#8ad0a0"),
     ]), "Magnetometer: heading", group="mag")
     mag_meta = {"b": [round(v, 3) for v in mg["b"]], "D": [round(v, 3) for v in mg["D"]]}
+
+    # 12) Ultrasonik mesafe sensörü (HC-SR04) — gerçek irtifadan (z) ölçüm + filtre
+    dt_s = (t[1] - t[0]) if len(t) > 1 else 1.0 / 60.0
+    us_raw, us_filt = ultrasonic.simulate(tel.z, dt_s)
+    write("ultra.svg", line_chart("Ultrasonic distance (HC-SR04)", "t (s)", "mesafe (m)", [
+        _series(t, tel.z, "gercek mesafe", "#8a93ac", dashed=True),
+        _series(t, us_raw, "ham (gurultulu)", "#e0685f"),
+        _series(t, us_filt, "alcak-geciren filtre", "#6fa8e6"),
+    ]), "Ultrasonic distance (HC-SR04)", group="ultrasonic")
+
+    # 13-14) IMU (MPU-6050) — ivmeölçer (bias+gürültü+filtre) ve jiroskop drifti
+    acc_t, acc_r, acc_f = imu.accel_z(tel.roll, tel.pitch, tel.yaw, dt_s)
+    write("imu_acc.svg", line_chart("Accelerometer z (MPU-6050)", "t (s)", "a_z (m/s²)", [
+        _series(t, acc_t, "gercek (g·cosφcosθ)", "#8a93ac", dashed=True),
+        _series(t, acc_r, "ham (bias+gurultu)", "#e0685f"),
+        _series(t, acc_f, "alcak-geciren filtre", "#6fa8e6"),
+    ]), "Accelerometer (bias + noise)", group="imu")
+    gyro_t, gyro_e = imu.gyro_drift(tel.yaw, dt_s)
+    write("imu_gyro.svg", line_chart("Gyroscope integration drift (yaw)", "t (s)", "yaw (derece)", [
+        _series(t, gyro_t, "gercek yaw", "#8a93ac", dashed=True),
+        _series(t, gyro_e, "jiroskop (entegre, drift)", "#f0b446"),
+    ]), "Gyroscope drift", group="imu")
+
+    # 15-16) Telsiz haberleşme (APC-220) — link bütçesi + telemetri downlink
+    ds, rssi, rng_m = comm.link_budget()
+    write("comm_link.svg", line_chart("APC-220 link budget", "mesafe (m)", "RSSI (dBm)", [
+        _series(ds, rssi, "alinan guc (RSSI)", "#6fa8e6"),
+        _series(ds, [comm.SENSITIVITY] * len(ds), "duyarlilik (-112 dBm)", "#e0685f", dashed=True),
+    ]), "APC-220 link budget", group="comm")
+    recv, frate = comm.downlink(tel.z, dt_s)
+    write("comm_down.svg", line_chart("Telemetry downlink (9600 bps)", "t (s)", "z (m)", [
+        _series(t, tel.z, "gonderilen (60 Hz)", "#8a93ac", dashed=True),
+        _series(t, recv, "alinan (COM-port)", "#f0b446"),
+    ]), "Telemetry downlink", group="comm")
+
+    # 17) GPS — çoklu-konumlama ile mutlak yatay konum
+    gx, gy = gpsmod.run(tel.x, tel.y, tel.z, dt_s)
+    write("gps.svg", xy_chart("GPS position (multilateration)", "x", "y", [
+        {"label": "gercek yol", "color": "#8a93ac", "pts": list(zip(tel.x, tel.y)), "dashed": True},
+        {"label": "GPS kestirimi", "color": "#f0b446", "pts": list(zip(gx, gy))},
+    ]), "GPS position", group="gps")
+
+    # 18) Barometre — basınçtan irtifa (+ alçak-geçiren filtre)
+    b_raw, b_filt = barometer.run(tel.z, dt_s)
+    write("baro.svg", line_chart("Barometric altitude", "t (s)", "irtifa (m)", [
+        _series(t, tel.z, "gercek irtifa", "#8a93ac", dashed=True),
+        _series(t, b_raw, "ham (basinc gurultusu)", "#e0685f"),
+        _series(t, b_filt, "alcak-geciren filtre", "#6fa8e6"),
+    ]), "Barometric altitude", group="baro")
+
+    # 19) Optik akış — yatay hız (piksel kaymasından)
+    of_true, of_est = opticalflow.run(tel.x, tel.z, dt_s)
+    write("flow.svg", line_chart("Optical flow velocity (vx)", "t (s)", "vx (m/s)", [
+        _series(t, of_true, "gercek vx", "#8a93ac", dashed=True),
+        _series(t, of_est, "optik akis kestirimi", "#6fa8e6"),
+    ]), "Optical flow velocity", group="flow")
+
+    # 20) ToF / Lidar — ultrasoniğe göre daha doğru
+    us_raw2, _ = ultrasonic.simulate(tel.z, dt_s, seed=9)
+    tof_vals = tofmod.run(tel.z)
+    write("tof.svg", line_chart("ToF / Lidar distance", "t (s)", "mesafe (m)", [
+        _series(t, tel.z, "gercek mesafe", "#8a93ac", dashed=True),
+        _series(t, us_raw2, "ultrasonik (gurultulu)", "#e0685f"),
+        _series(t, tof_vals, "ToF / Lidar", "#6fa8e6"),
+    ]), "ToF / Lidar distance", group="tof")
 
     # 8) Relay feedback auto-tune deneyi (varsa) — açıklamalı salınım diyagramı
     tune_meta = None
